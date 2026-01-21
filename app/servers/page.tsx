@@ -110,7 +110,7 @@ function ServerCard({ server }: { server: (typeof servers)[0] }) {
   const statusConfig = {
     online: { color: "bg-green-500", text: "Online", textColor: "text-green-400" },
     offline: { color: "bg-red-500", text: "Offline", textColor: "text-red-400" },
-    starting: { color: "bg-amber-500 animate-pulse", text: "Iniciando", textColor: "text-amber-400" },
+    starting: { color: "bg-amber-500 animate-pulse", text: "Starting", textColor: "text-amber-400" },
   };
 
   const status = statusConfig[server.status as keyof typeof statusConfig];
@@ -119,7 +119,7 @@ function ServerCard({ server }: { server: (typeof servers)[0] }) {
     <div className="glass glass-hover rounded-xl p-5 transition-all">
       <div className="flex items-start gap-4">
         <div className="relative h-24 w-16 shrink-0 overflow-hidden rounded-lg">
-          <Link href={`/servidores/${server.id}`}>
+          <Link href={`/servers/${server.id}`}>
             <Image
               src={getGameCover(server.slug)}
               alt={server.game}
@@ -131,7 +131,7 @@ function ServerCard({ server }: { server: (typeof servers)[0] }) {
 
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <Link href={`/servidores/${server.id}`} className="hover:underline">
+            <Link href={`/servers/${server.id}`} className="hover:underline">
               <h3 className="truncate text-lg font-semibold text-foreground">
                 {server.name}
               </h3>
@@ -165,7 +165,7 @@ function ServerCard({ server }: { server: (typeof servers)[0] }) {
               </span>
               <span className="text-muted-foreground">/ {server.players.max}</span>
             </div>
-            <span className="text-xs text-muted-foreground">Jogadores</span>
+            <span className="text-xs text-muted-foreground">Players</span>
           </div>
 
           <div className="text-center">
@@ -209,7 +209,7 @@ function ServerCard({ server }: { server: (typeof servers)[0] }) {
               variant="ghost"
               size="icon"
               className="h-10 w-10 text-red-400 hover:bg-red-500/20 hover:text-red-400"
-              title="Parar servidor"
+              title="Stop server"
             >
               <Square className="h-4 w-4" />
             </Button>
@@ -227,7 +227,7 @@ function ServerCard({ server }: { server: (typeof servers)[0] }) {
               variant="ghost"
               size="icon"
               className="h-10 w-10 text-green-400 hover:bg-green-500/20 hover:text-green-400"
-              title="Iniciar servidor"
+              title="Start server"
             >
               <Play className="h-4 w-4" />
             </Button>
@@ -236,7 +236,7 @@ function ServerCard({ server }: { server: (typeof servers)[0] }) {
             variant="ghost"
             size="icon"
             className="h-10 w-10 text-muted-foreground hover:text-foreground"
-            title="Reiniciar"
+            title="Restart"
             disabled={server.status === "offline"}
           >
             <RotateCcw className="h-4 w-4" />
@@ -263,12 +263,12 @@ function ServerCard({ server }: { server: (typeof servers)[0] }) {
               </DropdownMenuItem>
               <DropdownMenuItem className="text-foreground focus:bg-white/10">
                 <Settings className="mr-2 h-4 w-4" />
-                Configurações
+                Settings
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-border/50" />
               <DropdownMenuItem className="text-destructive focus:bg-white/10">
                 <Trash2 className="mr-2 h-4 w-4" />
-                Excluir
+                Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -306,15 +306,15 @@ function ServidoresContent() {
     <AppLayout>
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Meus Servidores</h1>
+          <h1 className="text-2xl font-bold text-foreground">My Servers</h1>
           <p className="text-muted-foreground">
-            {onlineCount} online, {startingCount} iniciando, {servers.length - onlineCount - startingCount} offline
+            {onlineCount} online, {startingCount} starting, {servers.length - onlineCount - startingCount} offline
           </p>
         </div>
         <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
-          <Link href="/jogos">
+          <Link href="/games">
             <Plus className="mr-2 h-4 w-4" />
-            Novo Servidor
+            New Server
           </Link>
         </Button>
       </div>
@@ -328,12 +328,12 @@ function ServidoresContent() {
       {servers.length === 0 && (
         <div className="glass flex flex-col items-center justify-center rounded-xl py-16">
           <Server className="mb-4 h-12 w-12 text-muted-foreground" />
-          <h3 className="mb-2 text-lg font-semibold text-foreground">Nenhum servidor criado</h3>
-          <p className="mb-4 text-muted-foreground">Crie seu primeiro servidor para começar</p>
+          <h3 className="mb-2 text-lg font-semibold text-foreground">No servers created</h3>
+          <p className="mb-4 text-muted-foreground">Create your first server to get started</p>
           <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
-            <Link href="/jogos">
+            <Link href="/games">
               <Plus className="mr-2 h-4 w-4" />
-              Criar Servidor
+              Create Server
             </Link>
           </Button>
         </div>

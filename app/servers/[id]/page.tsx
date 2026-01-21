@@ -119,7 +119,7 @@ function ServerDetails() {
     const statusConfig = {
         online: { color: "bg-green-500", text: "Online", textColor: "text-green-400" },
         offline: { color: "bg-red-500", text: "Offline", textColor: "text-red-400" },
-        starting: { color: "bg-amber-500 animate-pulse", text: "Iniciando", textColor: "text-amber-400" },
+        starting: { color: "bg-amber-500 animate-pulse", text: "Starting", textColor: "text-amber-400" },
     };
 
     const status = statusConfig[server.status as keyof typeof statusConfig];
@@ -130,9 +130,9 @@ function ServerDetails() {
                 {/* Header with Breadcrumb and Actions */}
                 <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Link href="/servidores" className="flex items-center hover:text-foreground">
+                        <Link href="/servers" className="flex items-center hover:text-foreground">
                             <ChevronLeft className="mr-1 h-4 w-4" />
-                            Servidores
+                            Servers
                         </Link>
                         <span>/</span>
                         <span className="text-foreground">{server.name}</span>
@@ -141,15 +141,15 @@ function ServerDetails() {
                     <div className="flex items-center gap-2">
                         {server.status === "online" ? (
                             <Button variant="destructive" className="gap-2">
-                                <Square className="h-4 w-4" /> Parar
+                                <Square className="h-4 w-4" /> Stop
                             </Button>
                         ) : (
                             <Button className="gap-2 bg-green-500 hover:bg-green-600">
-                                <Play className="h-4 w-4" /> Iniciar
+                                <Play className="h-4 w-4" /> Start
                             </Button>
                         )}
                         <Button variant="outline" className="gap-2">
-                            <RotateCcw className="h-4 w-4" /> Reiniciar
+                            <RotateCcw className="h-4 w-4" /> Restart
                         </Button>
                     </div>
                 </div>
@@ -176,7 +176,7 @@ function ServerDetails() {
                                 </div>
                                 <div className="mt-2 flex items-center gap-4 text-sm text-muted-foreground">
                                     <span className="flex items-center gap-1.5">
-                                        <Users className="h-4 w-4" /> {server.players.current}/{server.players.max} Jogadores
+                                        <Users className="h-4 w-4" /> {server.players.current}/{server.players.max} Players
                                     </span>
                                     <span className="flex items-center gap-1.5">
                                         <Clock className="h-4 w-4" /> {server.uptime} uptime
@@ -212,10 +212,10 @@ function ServerDetails() {
                             <Terminal className="h-4 w-4" /> Console
                         </TabsTrigger>
                         <TabsTrigger value="settings" className="gap-2">
-                            <Settings className="h-4 w-4" /> Configurações
+                            <Settings className="h-4 w-4" /> Settings
                         </TabsTrigger>
                         <TabsTrigger value="files" className="gap-2" disabled>
-                            <FileText className="h-4 w-4" /> Arquivos
+                            <FileText className="h-4 w-4" /> Files
                         </TabsTrigger>
                     </TabsList>
 
@@ -257,7 +257,7 @@ function ServerDetails() {
                                     <Input
                                         value={command}
                                         onChange={(e) => setCommand(e.target.value)}
-                                        placeholder="Digite um comando..."
+                                        placeholder="Type a command..."
                                         className="border-white/10 bg-black/20 pl-6 font-mono focus:border-primary/50"
                                         autoComplete="off"
                                     />
@@ -277,30 +277,30 @@ function ServerDetails() {
                                 <div className="glass rounded-xl p-6">
                                     <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold">
                                         <Settings className="h-5 w-5 text-primary" />
-                                        Configurações Gerais
+                                        General Settings
                                     </h3>
 
                                     <div className="space-y-4">
                                         <div className="grid gap-2">
-                                            <Label>Nome do Servidor</Label>
+                                            <Label>Server Name</Label>
                                             <Input defaultValue={server.name} className="bg-white/5" />
                                         </div>
 
                                         <div className="grid gap-2">
-                                            <Label>Mensagem do Dia (MOTD)</Label>
+                                            <Label>Message of the Day (MOTD)</Label>
                                             <Input defaultValue={server.settings.motd} className="bg-white/5" />
                                         </div>
 
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="grid gap-2">
-                                                <Label>Slots Máximos</Label>
+                                                <Label>Max Slots</Label>
                                                 <Input type="number" defaultValue={server.settings.maxPlayers} className="bg-white/5" />
                                             </div>
                                             <div className="grid gap-2">
-                                                <Label>Dificuldade</Label>
+                                                <Label>Difficulty</Label>
                                                 <Select defaultValue="hard">
                                                     <SelectTrigger className="w-full bg-white/5 border-white/10">
-                                                        <SelectValue placeholder="Selecione a dificuldade" />
+                                                        <SelectValue placeholder="Select difficulty" />
                                                     </SelectTrigger>
                                                     <SelectContent className="border-white/5 bg-background/80 backdrop-blur-xl">
                                                         <SelectItem value="peaceful" className="focus:bg-white/10">Peaceful</SelectItem>
@@ -315,19 +315,19 @@ function ServerDetails() {
 
                                     <div className="mt-6 flex justify-end">
                                         <Button className="gap-2">
-                                            <Save className="h-4 w-4" /> Salvar Alterações
+                                            <Save className="h-4 w-4" /> Save Changes
                                         </Button>
                                     </div>
                                 </div>
 
                                 {/* Game Rules */}
                                 <div className="glass rounded-xl p-6">
-                                    <h3 className="mb-4 text-lg font-semibold">Regras do Jogo</h3>
+                                    <h3 className="mb-4 text-lg font-semibold">Game Rules</h3>
                                     <div className="grid gap-6 sm:grid-cols-2">
                                         <div className="flex items-center justify-between space-x-2 rounded-lg border border-white/5 bg-white/[0.02] p-4">
                                             <Label htmlFor="pvp-mode" className="flex flex-col space-y-1">
                                                 <span>PvP</span>
-                                                <span className="text-xs font-normal text-muted-foreground">Permitir combate entre jogadores</span>
+                                                <span className="text-xs font-normal text-muted-foreground">Allow player vs player combat</span>
                                             </Label>
                                             <Switch id="pvp-mode" defaultChecked={server.settings.pvp} />
                                         </div>
@@ -335,7 +335,7 @@ function ServerDetails() {
                                         <div className="flex items-center justify-between space-x-2 rounded-lg border border-white/5 bg-white/[0.02] p-4">
                                             <Label htmlFor="whitelist" className="flex flex-col space-y-1">
                                                 <span>Whitelist</span>
-                                                <span className="text-xs font-normal text-muted-foreground">Apenas jogadores listados podem entrar</span>
+                                                <span className="text-xs font-normal text-muted-foreground">Only listed players can join</span>
                                             </Label>
                                             <Switch id="whitelist" defaultChecked={server.settings.whitelist} />
                                         </div>
@@ -346,18 +346,18 @@ function ServerDetails() {
                             {/* Sidebar Settings / Danger Zone */}
                             <div className="space-y-6">
                                 <div className="glass rounded-xl p-6">
-                                    <h3 className="mb-4 text-sm font-medium text-muted-foreground uppercase tracking-wider">Informações Técnicas</h3>
+                                    <h3 className="mb-4 text-sm font-medium text-muted-foreground uppercase tracking-wider">Technical Information</h3>
                                     <div className="space-y-3 text-sm">
                                         <div className="flex justify-between py-2 border-b border-white/5">
-                                            <span className="text-muted-foreground">Endereço IP</span>
+                                            <span className="text-muted-foreground">IP Address</span>
                                             <span className="font-mono text-foreground">{server.host}</span>
                                         </div>
                                         <div className="flex justify-between py-2 border-b border-white/5">
-                                            <span className="text-muted-foreground">Porta</span>
+                                            <span className="text-muted-foreground">Port</span>
                                             <span className="font-mono text-foreground">{server.port}</span>
                                         </div>
                                         <div className="flex justify-between py-2 border-b border-white/5">
-                                            <span className="text-muted-foreground">Versão</span>
+                                            <span className="text-muted-foreground">Version</span>
                                             <span className="text-foreground">{server.version}</span>
                                         </div>
                                         <div className="flex justify-between py-2 border-b border-white/5">
@@ -372,17 +372,17 @@ function ServerDetails() {
                                         <ShieldAlert className="h-5 w-5" />
                                         Danger Zone
                                     </h3>
-                                    <p className="mb-4 text-xs text-muted-foreground">Ações irreversíveis que afetam o servidor.</p>
+                                    <p className="mb-4 text-xs text-muted-foreground">Irreversible actions that affect the server.</p>
 
                                     <div className="space-y-3">
                                         <Button variant="outline" className="w-full justify-start border-red-500/20 text-red-400 hover:bg-red-500/10 hover:text-red-300">
-                                            Reinstalar Servidor
+                                            Reinstall Server
                                         </Button>
                                         <Button variant="outline" className="w-full justify-start border-red-500/20 text-red-400 hover:bg-red-500/10 hover:text-red-300">
-                                            Forçar Parada
+                                            Force Stop
                                         </Button>
                                         <Button variant="destructive" className="w-full justify-start">
-                                            Excluir Servidor
+                                            Delete Server
                                         </Button>
                                     </div>
                                 </div>

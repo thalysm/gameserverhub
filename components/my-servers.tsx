@@ -124,7 +124,7 @@ function ServerCard({ server }: { server: (typeof servers)[0] }) {
                 {server.players.current}/{server.players.max}
               </span>
             </div>
-            <span className="text-xs text-muted-foreground">Jogadores</span>
+            <span className="text-xs text-muted-foreground">Players</span>
           </div>
 
           {server.status === "online" && (
@@ -159,7 +159,7 @@ function ServerCard({ server }: { server: (typeof servers)[0] }) {
               variant="ghost"
               size="icon"
               className="h-9 w-9 text-red-400 hover:bg-red-500/20 hover:text-red-400"
-              title="Parar servidor"
+              title="Stop server"
             >
               <Square className="h-4 w-4" />
             </Button>
@@ -168,7 +168,7 @@ function ServerCard({ server }: { server: (typeof servers)[0] }) {
               variant="ghost"
               size="icon"
               className="h-9 w-9 text-green-400 hover:bg-green-500/20 hover:text-green-400"
-              title="Iniciar servidor"
+              title="Start server"
             >
               <Play className="h-4 w-4" />
             </Button>
@@ -177,7 +177,7 @@ function ServerCard({ server }: { server: (typeof servers)[0] }) {
             variant="ghost"
             size="icon"
             className="h-9 w-9 text-muted-foreground hover:text-foreground"
-            title="Reiniciar"
+            title="Restart"
           >
             <RotateCcw className="h-4 w-4" />
           </Button>
@@ -185,7 +185,7 @@ function ServerCard({ server }: { server: (typeof servers)[0] }) {
             variant="ghost"
             size="icon"
             className="h-9 w-9 text-muted-foreground hover:text-foreground"
-            title="Configurações"
+            title="Settings"
           >
             <Settings className="h-4 w-4" />
           </Button>
@@ -206,7 +206,7 @@ export function MyServers() {
         <div className="flex items-center gap-2">
           <Server className="h-5 w-5 text-primary" />
           <h2 className="text-lg font-semibold text-foreground">
-            Meus Servidores
+            My Servers
           </h2>
           <span className="glass rounded-full px-2 py-0.5 text-xs text-muted-foreground">
             {servers.filter((s) => s.status === "online").length}/{servers.length} online
@@ -217,7 +217,7 @@ export function MyServers() {
           className="text-sm text-muted-foreground hover:text-foreground"
           asChild
         >
-          <Link href="/servidores">Ver todos</Link>
+          <Link href="/servers">View all</Link>
         </Button>
       </div>
 

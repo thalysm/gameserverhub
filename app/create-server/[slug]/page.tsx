@@ -83,7 +83,7 @@ function CreateServerContent({ game }: { game: Game }) {
     setIsCreating(true);
     // Simulate server creation
     await new Promise((resolve) => setTimeout(resolve, 2000));
-    router.push("/servidores");
+    router.push("/servers");
   };
 
   const isStepValid = (step: number) => {
@@ -109,7 +109,7 @@ function CreateServerContent({ game }: { game: Game }) {
           asChild
           className="h-10 w-10 shrink-0"
         >
-          <Link href="/jogos">
+          <Link href="/games">
             <ArrowLeft className="h-5 w-5" />
           </Link>
         </Button>
@@ -123,8 +123,8 @@ function CreateServerContent({ game }: { game: Game }) {
             />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Criar Servidor - {game.name}</h1>
-            <p className="text-muted-foreground">Configure seu servidor dedicado</p>
+            <h1 className="text-2xl font-bold text-foreground">Create Server - {game.name}</h1>
+            <p className="text-muted-foreground">Configure your dedicated server</p>
           </div>
         </div>
       </div>
@@ -142,11 +142,11 @@ function CreateServerContent({ game }: { game: Game }) {
                 )}>
                   {currentStep > 1 ? <Check className="h-4 w-4" /> : "1"}
                 </div>
-                <h2 className="text-lg font-semibold text-foreground">Informações Básicas</h2>
+                <h2 className="text-lg font-semibold text-foreground">Basic Information</h2>
               </div>
               {currentStep > 1 && (
                 <Button variant="ghost" size="sm" onClick={() => setCurrentStep(1)}>
-                  Editar
+                  Edit
                 </Button>
               )}
             </div>
@@ -154,7 +154,7 @@ function CreateServerContent({ game }: { game: Game }) {
             {currentStep === 1 && (
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="serverName">Nome do Servidor</Label>
+                  <Label htmlFor="serverName">Server Name</Label>
                   <Input
                     id="serverName"
                     placeholder="Ex: Meu Servidor Competitivo"

@@ -18,13 +18,13 @@ import { useLayout } from "./layout-context";
 
 const navItems = [
   { icon: Home, label: "Home", href: "/" },
-  { icon: Heart, label: "Favoritos", href: "/favoritos" },
-  { icon: Server, label: "Meus Servidores", href: "/servidores" },
-  { icon: LayoutGrid, label: "Categorias", href: "/categorias" },
+  { icon: Heart, label: "Favorites", href: "/favorites" },
+  { icon: Server, label: "My Servers", href: "/servers" },
+  { icon: LayoutGrid, label: "Categories", href: "/categories" },
 ];
 
 const bottomItems = [
-  { icon: Settings, label: "Configurações", href: "/configuracoes" },
+  { icon: Settings, label: "Settings", href: "/settings" },
 ];
 
 export function StoreSidebar() {
@@ -97,9 +97,9 @@ export function StoreSidebar() {
           </Link>
         ))}
 
-        <Link href="/jogos" className="mt-2 flex w-full items-center gap-3 rounded-lg bg-primary/20 px-3 py-2.5 text-sm text-primary transition-all hover:bg-primary/30">
+        <Link href="/games" className="mt-2 flex w-full items-center gap-3 rounded-lg bg-primary/20 px-3 py-2.5 text-sm text-primary transition-all hover:bg-primary/30">
           <Plus className="h-5 w-5 shrink-0" />
-          {!collapsed && <span>Criar Servidor</span>}
+          {!collapsed && <span>Create Server</span>}
         </Link>
       </div>
 

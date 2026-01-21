@@ -58,7 +58,7 @@ function GameCard({ game }: { game: Game }) {
             {game.description}
           </p>
           <p className="mb-3 font-mono text-xs text-muted-foreground">
-            Porta: {game.defaultPort}
+            Port: {game.defaultPort}
           </p>
 
           <Button
@@ -66,9 +66,9 @@ function GameCard({ game }: { game: Game }) {
             size="sm"
             className="w-full bg-primary/20 text-primary backdrop-blur-sm hover:bg-primary hover:text-primary-foreground"
           >
-            <Link href={`/criar-servidor/${game.slug}`}>
+            <Link href={`/create-server/${game.slug}`}>
               <Plus className="mr-1 h-4 w-4" />
-              Criar Servidor
+              Create Server
             </Link>
           </Button>
         </div>
@@ -85,14 +85,14 @@ export function GameStoreGrid() {
     <section className="mb-8">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-foreground">
-          Jogos Disponíveis
+          Available Games
         </h2>
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           className="text-sm text-muted-foreground hover:text-foreground"
           asChild
         >
-          <Link href="/jogos">Ver todos</Link>
+          <Link href="/games">View all</Link>
         </Button>
       </div>
 

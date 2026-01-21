@@ -49,10 +49,10 @@ export function ProfileClient({ user }: ProfileClientProps) {
             if (result.error) {
                 toast.error(result.error);
             } else {
-                toast.success("Foto de perfil atualizada!");
+                toast.success("Profile picture updated!");
             }
         } catch {
-            toast.error("Erro ao enviar imagem");
+            toast.error("Error uploading image");
         } finally {
             setIsUploading(false);
         }
@@ -65,11 +65,11 @@ export function ProfileClient({ user }: ProfileClientProps) {
             if (result?.error) {
                 toast.error(result.error);
             } else {
-                toast.success(result?.success || "Senha alterada!");
+                toast.success(result?.success || "Password changed!");
                 (document.getElementById("passwordForm") as HTMLFormElement).reset();
             }
         } catch {
-            toast.error("Erro ao alterar senha");
+            toast.error("Error changing password");
         } finally {
             setIsChangingPassword(false);
         }
@@ -116,14 +116,14 @@ export function ProfileClient({ user }: ProfileClientProps) {
                                 <Shield className="h-4 w-4 text-primary" /> {user.role}
                             </span>
                             <span className="flex items-center gap-1.5 bg-secondary/50 px-3 py-1 rounded-full text-sm">
-                                <Clock className="h-4 w-4" /> Membro desde {new Date(user.createdAt).toLocaleDateString()}
+                                <Clock className="h-4 w-4" /> Member since {new Date(user.createdAt).toLocaleDateString()}
                             </span>
                         </div>
                     </div>
 
                     <div className="flex gap-2">
                         <Button variant="destructive" className="glass-hover" onClick={async () => await logout()}>
-                            <LogOut className="mr-2 h-4 w-4" /> Sair
+                            <LogOut className="mr-2 h-4 w-4" /> Logout
                         </Button>
                     </div>
                 </div>
@@ -138,14 +138,14 @@ export function ProfileClient({ user }: ProfileClientProps) {
                                 <User className="h-6 w-6 text-primary" />
                             </div>
                             <div>
-                                <CardTitle>Informações Pessoais</CardTitle>
-                                <CardDescription>Dados da sua conta</CardDescription>
+                                <CardTitle>Personal Information</CardTitle>
+                                <CardDescription>Your account data</CardDescription>
                             </div>
                         </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="space-y-2">
-                            <Label>Nome de Exibição</Label>
+                            <Label>Display Name</Label>
                             <div className="flex items-center gap-2 px-3 py-2 rounded-md bg-secondary/50 border border-white/5">
                                 <User className="h-4 w-4 text-muted-foreground" />
                                 <span className="text-sm">{user.name}</span>
@@ -159,7 +159,7 @@ export function ProfileClient({ user }: ProfileClientProps) {
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <Label>ID do Usuário</Label>
+                            <Label>User ID</Label>
                             <div className="flex items-center gap-2 px-3 py-2 rounded-md bg-secondary/50 border border-white/5 font-mono text-xs">
                                 <Key className="h-3 w-3 text-muted-foreground" />
                                 <span className="opacity-70">{user.id}</span>
@@ -176,30 +176,30 @@ export function ProfileClient({ user }: ProfileClientProps) {
                                 <Key className="h-6 w-6 text-primary" />
                             </div>
                             <div>
-                                <CardTitle>Segurança</CardTitle>
-                                <CardDescription>Alterar senha de acesso</CardDescription>
+                                <CardTitle>Security</CardTitle>
+                                <CardDescription>Change access password</CardDescription>
                             </div>
                         </div>
                     </CardHeader>
                     <CardContent>
                         <form id="passwordForm" action={handlePasswordChange} className="space-y-4">
                             <div className="space-y-2">
-                                <Label htmlFor="currentPassword">Senha Atual</Label>
+                                <Label htmlFor="currentPassword">Current Password</Label>
                                 <PasswordInput id="currentPassword" name="currentPassword" required className="bg-secondary/50 border-white/10" />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="newPassword">Nova Senha</Label>
+                                    <Label htmlFor="newPassword">New Password</Label>
                                     <PasswordInput id="newPassword" name="newPassword" required className="bg-secondary/50 border-white/10" />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="confirmPassword">Confirmar</Label>
+                                    <Label htmlFor="confirmPassword">Confirm</Label>
                                     <PasswordInput id="confirmPassword" name="confirmPassword" required className="bg-secondary/50 border-white/10" />
                                 </div>
                             </div>
                             <Button type="submit" className="w-full bg-primary/20 hover:bg-primary/30 text-primary border border-primary/20" disabled={isChangingPassword}>
                                 <Save className="mr-2 h-4 w-4" />
-                                {isChangingPassword ? "Alterando..." : "Atualizar Senha"}
+                                {isChangingPassword ? "Changing..." : "Update Password"}
                             </Button>
                         </form>
                     </CardContent>
@@ -211,17 +211,17 @@ export function ProfileClient({ user }: ProfileClientProps) {
                 <CardHeader>
                     <div className="flex items-center gap-2">
                         <Trash2 className="h-5 w-5 text-red-400" />
-                        <CardTitle className="text-red-400">Zona de Perigo</CardTitle>
+                        <CardTitle className="text-red-400">Danger Zone</CardTitle>
                     </div>
-                    <CardDescription>Ações irreversíveis para sua conta</CardDescription>
+                    <CardDescription>Irreversible actions for your account</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="flex items-center justify-between">
                         <div className="space-y-1">
-                            <p className="font-medium">Excluir Conta</p>
-                            <p className="text-sm text-muted-foreground">Isso excluirá permanentemente sua conta e todos os dados associados.</p>
+                            <p className="font-medium">Delete Account</p>
+                            <p className="text-sm text-muted-foreground">This will permanently delete your account and all associated data.</p>
                         </div>
-                        <Button variant="destructive" disabled title="Funcionalidade desativada para Admin Principal">Excluir Conta</Button>
+                        <Button variant="destructive" disabled title="Feature disabled for Main Admin">Delete Account</Button>
                     </div>
                 </CardContent>
             </Card>

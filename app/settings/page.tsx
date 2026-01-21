@@ -9,10 +9,10 @@ import { useState } from "react";
 import { Globe, Settings, Server, Bell } from "lucide-react";
 
 const tabs = [
-  { id: "geral", label: "Geral", icon: Settings },
-  { id: "hosts", label: "Hosts & Domínios", icon: Globe },
-  { id: "servidores", label: "Servidores", icon: Server },
-  { id: "notificacoes", label: "Notificações", icon: Bell },
+  { id: "geral", label: "General", icon: Settings },
+  { id: "hosts", label: "Hosts & Domains", icon: Globe },
+  { id: "servidores", label: "Servers", icon: Server },
+  { id: "notificacoes", label: "Notifications", icon: Bell },
 ];
 
 function SettingsContent() {
@@ -21,9 +21,9 @@ function SettingsContent() {
   return (
     <AppLayout>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-foreground">Configurações</h1>
+        <h1 className="text-2xl font-bold text-foreground">Settings</h1>
         <p className="text-sm text-muted-foreground">
-          Gerencie as configurações do seu GameServerHub
+          Manage your GameServerHub settings
         </p>
       </div>
 
@@ -52,20 +52,20 @@ function SettingsContent() {
           {activeTab === "servidores" && (
             <div className="glass rounded-xl p-6">
               <h2 className="mb-4 text-lg font-semibold text-foreground">
-                Configurações de Servidores
+                Server Settings
               </h2>
               <p className="text-sm text-muted-foreground">
-                Em breve: Configurações padrão para novos servidores.
+                Coming soon: Default settings for new servers.
               </p>
             </div>
           )}
           {activeTab === "notificacoes" && (
             <div className="glass rounded-xl p-6">
               <h2 className="mb-4 text-lg font-semibold text-foreground">
-                Notificações
+                Notifications
               </h2>
               <p className="text-sm text-muted-foreground">
-                Em breve: Configure alertas e notificações.
+                Coming soon: Configure alerts and notifications.
               </p>
             </div>
           )}

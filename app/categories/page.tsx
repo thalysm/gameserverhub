@@ -16,7 +16,7 @@ const categories = [
   {
     id: "fps",
     name: "FPS",
-    description: "Jogos de tiro em primeira pessoa",
+    description: "First-person shooter games",
     games: [
       {
         id: 2,
@@ -32,7 +32,7 @@ const categories = [
   {
     id: "sandbox",
     name: "Sandbox",
-    description: "Jogos de construção e criatividade",
+    description: "Building and creativity games",
     games: [
       {
         id: 1,
@@ -57,7 +57,7 @@ const categories = [
   {
     id: "survival",
     name: "Survival",
-    description: "Jogos de sobrevivência e exploração",
+    description: "Survival and exploration games",
     games: [
       {
         id: 4,
@@ -81,8 +81,8 @@ const categories = [
   },
   {
     id: "racing",
-    name: "Corrida",
-    description: "Simuladores e jogos de corrida",
+    name: "Racing",
+    description: "Racing simulators and games",
     games: [
       {
         id: 3,
@@ -147,9 +147,9 @@ function GameMiniCard({ game }: { game: Game }) {
             size="sm"
             className="h-8 w-full bg-primary/20 text-xs text-primary backdrop-blur-sm hover:bg-primary hover:text-primary-foreground"
           >
-            <Link href={`/criar-servidor/${game.slug}`}>
+            <Link href={`/create-server/${game.slug}`}>
               <Plus className="mr-1 h-3 w-3" />
-              Criar
+              Create
             </Link>
           </Button>
         </div>
@@ -167,7 +167,7 @@ function CategorySection({ category }: { category: (typeof categories)[0] }) {
           <p className="text-sm text-muted-foreground">{category.description}</p>
         </div>
         <Button variant="ghost" className="text-sm text-muted-foreground hover:text-foreground">
-          Ver todos
+          View all
           <ChevronRight className="ml-1 h-4 w-4" />
         </Button>
       </div>
@@ -189,10 +189,10 @@ function CategoriasContent() {
       <div className="mb-6">
         <div className="flex items-center gap-2">
           <LayoutGrid className="h-6 w-6 text-primary" />
-          <h1 className="text-2xl font-bold text-foreground">Categorias</h1>
+          <h1 className="text-2xl font-bold text-foreground">Categories</h1>
         </div>
         <p className="mt-1 text-muted-foreground">
-          {categories.length} categorias, {totalGames} jogos disponíveis
+          {categories.length} categories, {totalGames} games available
         </p>
       </div>
 

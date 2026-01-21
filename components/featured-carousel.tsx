@@ -11,15 +11,15 @@ import { games, getGameBanner } from "@/lib/games-data";
 const featuredGames = [
   {
     ...games.find((g) => g.slug === "minecraft")!,
-    tag: "Mais Popular",
+    tag: "Most Popular",
   },
   {
     ...games.find((g) => g.slug === "cs2")!,
-    tag: "Competitivo",
+    tag: "Competitive",
   },
   {
     ...games.find((g) => g.slug === "palworld")!,
-    tag: "Sobrevivência",
+    tag: "Survival",
   },
 ];
 
@@ -37,10 +37,10 @@ export function FeaturedCarousel() {
 
   return (
     <section className="relative mb-8">
-      <h2 className="mb-4 text-lg font-semibold text-foreground">Destaque</h2>
+      <h2 className="mb-4 text-lg font-semibold text-foreground">Featured</h2>
 
       <div className="glass relative overflow-hidden rounded-xl">
-        <div className="relative aspect-[21/9] w-full">
+        <div className="relative aspect-[28/7] w-full">
           <Image
             src={getGameBanner(game.slug)}
             alt={game.name}
@@ -75,15 +75,15 @@ export function FeaturedCarousel() {
 
             <div className="flex items-center gap-3">
               <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
-                <Link href={`/criar-servidor/${game.slug}`}>
+                <Link href={`/create-server/${game.slug}`}>
                   <Plus className="mr-2 h-4 w-4" />
-                  Criar Servidor
+                  Create Server
                 </Link>
               </Button>
               <Button asChild variant="outline" className="glass border-white/10 bg-transparent text-foreground hover:bg-white/10">
-                <Link href="/jogos">
+                <Link href="/games">
                   <Globe className="mr-2 h-4 w-4" />
-                  Ver Todos
+                  View All
                 </Link>
               </Button>
             </div>

@@ -19,7 +19,7 @@ const favoriteGames = [
     name: "Counter-Strike 2",
     image: "/games/cs2.jpg",
     category: "FPS",
-    description: "Servidores competitivos com anti-cheat e configurações avançadas.",
+    description: "Competitive servers with anti-cheat and advanced settings.",
     supportsTcp: false,
     supportsUdp: true,
     defaultPort: 27015,
@@ -31,7 +31,7 @@ const favoriteGames = [
     name: "Valheim",
     image: "/games/valheim.jpg",
     category: "Survival",
-    description: "Mundos Viking para explorar com seus amigos em co-op.",
+    description: "Viking worlds to explore with your friends in co-op.",
     supportsTcp: false,
     supportsUdp: true,
     defaultPort: 2456,
@@ -60,7 +60,7 @@ function FavoriteGameCard({
         <button
           onClick={() => onRemove(game.id)}
           className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-black/40 backdrop-blur-sm transition-all hover:bg-red-500/50"
-          title="Remover dos favoritos"
+          title="Remove from favorites"
         >
           <Heart className="h-4 w-4 fill-red-500 text-red-500" />
         </button>
@@ -90,7 +90,7 @@ function FavoriteGameCard({
           </p>
           {game.serversCreated > 0 && (
             <p className="mb-3 text-xs text-primary">
-              {game.serversCreated} servidor{game.serversCreated > 1 ? "es" : ""} criado{game.serversCreated > 1 ? "s" : ""}
+              {game.serversCreated} server{game.serversCreated > 1 ? "s" : ""} created
             </p>
           )}
 
@@ -99,7 +99,7 @@ function FavoriteGameCard({
             className="w-full bg-primary/20 text-primary backdrop-blur-sm hover:bg-primary hover:text-primary-foreground"
           >
             <Plus className="mr-1 h-4 w-4" />
-            Criar Servidor
+            Create Server
           </Button>
         </div>
       </div>
@@ -120,10 +120,10 @@ function FavoritosContent() {
       <div className="mb-6">
         <div className="flex items-center gap-2">
           <Heart className="h-6 w-6 text-red-500" />
-          <h1 className="text-2xl font-bold text-foreground">Favoritos</h1>
+          <h1 className="text-2xl font-bold text-foreground">Favorites</h1>
         </div>
         <p className="mt-1 text-muted-foreground">
-          Seus jogos favoritos para acesso rápido
+          Your favorite games for quick access
         </p>
       </div>
 
@@ -136,12 +136,12 @@ function FavoritosContent() {
       ) : (
         <div className="glass flex flex-col items-center justify-center rounded-xl py-16">
           <HeartOff className="mb-4 h-12 w-12 text-muted-foreground" />
-          <h3 className="mb-2 text-lg font-semibold text-foreground">Nenhum favorito</h3>
+          <h3 className="mb-2 text-lg font-semibold text-foreground">No favorites</h3>
           <p className="mb-4 text-center text-muted-foreground">
-            Adicione jogos aos favoritos para acessá-los rapidamente
+            Add games to favorites to access them quickly
           </p>
           <Button variant="outline" asChild>
-            <Link href="/">Explorar Jogos</Link>
+            <Link href="/">Explore Games</Link>
           </Button>
         </div>
       )}

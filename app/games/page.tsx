@@ -45,7 +45,7 @@ function GameCard({ game, viewMode }: { game: Game; viewMode: "grid" | "list" })
           </div>
           <p className="mt-1 line-clamp-1 text-sm text-muted-foreground">{game.description}</p>
           <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
-            <span>Porta: {game.defaultPort}</span>
+            <span>Port: {game.defaultPort}</span>
             <span>RAM Min: {game.minRam}MB</span>
             {game.supportsTcp && <span className="text-blue-400">TCP</span>}
             {game.supportsUdp && <span className="text-green-400">UDP</span>}
@@ -65,9 +65,9 @@ function GameCard({ game, viewMode }: { game: Game; viewMode: "grid" | "list" })
             />
           </button>
           <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
-            <Link href={`/criar-servidor/${game.slug}`}>
+            <Link href={`/create-server/${game.slug}`}>
               <Plus className="mr-2 h-4 w-4" />
-              Criar Servidor
+              Create Server
             </Link>
           </Button>
         </div>
@@ -115,16 +115,16 @@ function GameCard({ game, viewMode }: { game: Game; viewMode: "grid" | "list" })
           <span className="mb-1 text-xs font-medium text-primary">{game.category}</span>
           <h3 className="mb-1 text-lg font-semibold text-foreground">{game.name}</h3>
           <p className="mb-2 line-clamp-2 text-xs text-muted-foreground">{game.description}</p>
-          <p className="mb-3 font-mono text-xs text-muted-foreground">Porta: {game.defaultPort}</p>
+          <p className="mb-3 font-mono text-xs text-muted-foreground">Port: {game.defaultPort}</p>
 
           <Button
             asChild
             size="sm"
             className="w-full bg-primary/20 text-primary backdrop-blur-sm hover:bg-primary hover:text-primary-foreground"
           >
-            <Link href={`/criar-servidor/${game.slug}`}>
+            <Link href={`/create-server/${game.slug}`}>
               <Plus className="mr-1 h-4 w-4" />
-              Criar Servidor
+              Create Server
             </Link>
           </Button>
         </div>
@@ -151,13 +151,13 @@ function JogosContent() {
   return (
     <div className="flex min-h-screen bg-background">
       <StoreSidebar />
-      <div className={cn("flex-1 transition-all duration-300", sidebarCollapsed ? "ml-16" : "ml-56")}>
+      <div className={cn("flex-1 transition-all duration-300", sidebarCollapsed ? "ml-16" : "ml-72")}>
         <StoreHeader />
         <main className="p-6">
           <div className="mb-6">
-            <h1 className="text-2xl font-bold text-foreground">Jogos Suportados</h1>
+            <h1 className="text-2xl font-bold text-foreground">Supported Games</h1>
             <p className="text-muted-foreground">
-              {games.length} jogos disponíveis para criar servidores dedicados
+              {games.length} games available to create dedicated servers
             </p>
           </div>
 
@@ -167,7 +167,7 @@ function JogosContent() {
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder="Buscar jogos..."
+                placeholder="Search games..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="h-10 border-white/5 bg-white/[0.02] pl-10 focus:border-primary/30 focus:bg-white/[0.04]"
@@ -181,10 +181,10 @@ function JogosContent() {
                 onValueChange={(value) => setSelectedCategory(value === "all" ? null : value)}
               >
                 <SelectTrigger className="h-10 w-[180px] rounded-lg border-white/5 bg-white/[0.02] px-3">
-                  <SelectValue placeholder="Todas categorias" />
+                  <SelectValue placeholder="All categories" />
                 </SelectTrigger>
                 <SelectContent className="border-white/5 bg-background/80 backdrop-blur-xl">
-                  <SelectItem value="all" className="focus:bg-white/10">Todas categorias</SelectItem>
+                  <SelectItem value="all" className="focus:bg-white/10">All categories</SelectItem>
                   {categories.map((cat) => (
                     <SelectItem key={cat} value={cat} className="focus:bg-white/10">{cat}</SelectItem>
                   ))}
@@ -232,8 +232,8 @@ function JogosContent() {
           {filteredGames.length === 0 && (
             <div className="glass flex flex-col items-center justify-center rounded-xl py-16">
               <Search className="mb-4 h-12 w-12 text-muted-foreground" />
-              <h3 className="mb-2 text-lg font-semibold text-foreground">Nenhum jogo encontrado</h3>
-              <p className="text-muted-foreground">Tente buscar com outros termos</p>
+              <h3 className="mb-2 text-lg font-semibold text-foreground">No games found</h3>
+              <p className="text-muted-foreground">Try searching with different terms</p>
             </div>
           )}
         </main>

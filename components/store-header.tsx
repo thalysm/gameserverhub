@@ -28,7 +28,7 @@ export function StoreHeader() {
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <input
           type="text"
-          placeholder="Pesquisar jogos..."
+          placeholder="Search games..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="h-10 w-full rounded-lg border border-white/5 bg-white/[0.02] pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/30 focus:bg-white/[0.04] focus:outline-none transition-all"
@@ -42,7 +42,7 @@ export function StoreHeader() {
           className="glass-hover h-10 w-10 rounded-lg text-muted-foreground hover:text-foreground"
           asChild
         >
-          <Link href="/favoritos">
+          <Link href="/favorites">
             <Heart className="h-5 w-5" />
           </Link>
         </Button>
@@ -60,7 +60,7 @@ export function StoreHeader() {
           className="glass-hover h-10 w-10 rounded-lg text-muted-foreground hover:text-foreground"
           asChild
         >
-          <Link href="/configuracoes">
+          <Link href="/settings">
             <Settings className="h-5 w-5" />
           </Link>
         </Button>
@@ -82,13 +82,13 @@ export function StoreHeader() {
             className="w-48 border-white/5 bg-background/80 backdrop-blur-xl"
           >
             <DropdownMenuItem className="text-foreground focus:bg-white/10" asChild>
-              <Link href="/perfil">Meu Perfil</Link>
+              <Link href="/profile">My Profile</Link>
             </DropdownMenuItem>
             <DropdownMenuItem className="text-foreground focus:bg-white/10" asChild>
-              <Link href="/servidores">Meus Servidores</Link>
+              <Link href="/servers">My Servers</Link>
             </DropdownMenuItem>
             <DropdownMenuItem className="text-foreground focus:bg-white/10" asChild>
-              <Link href="/configuracoes">Configurações</Link>
+              <Link href="/settings">Settings</Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator className="bg-border/50" />
             <DropdownMenuItem
@@ -98,7 +98,7 @@ export function StoreHeader() {
                 await logout();
               }}
             >
-              Sair
+              Logout
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
