@@ -8,12 +8,63 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
+  id        String       @id @default(cuid())
   name      String
-  email     String   @unique
+  email     String       @unique
   image     String?
   password  String
-  role      String   @default("USER")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  role      String       @default("USER")
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  servers   GameServer[]
+}
+
+model Game {
+  id          String       @id @default(cuid())
+  slug        String       @unique
+  name        String
+  category    String
+  description String
+  image       String?
+  defaultPort Int
+  minRam      Int
+  recommendedRam Int
+  supportsTcp Boolean      @default(false)
+  supportsUdp Boolean      @default(true)
+  dockerImage String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  servers     GameServer[]
+}
+
+model GameServer {
+  id            String   @id @default(cuid())
+  name          String
+  gameId        String
+  game          Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Connection settings
+  port          Int
+  customHost    String?
+  
+  // Resource allocation
+  ramMb         Int
+  cpuCores      Int
+  
+  // Docker management
+  containerId   String?
+  containerName String   @unique
+  status        String   @default("stopped") // stopped, starting, running, stopping, error
+  
+  // Game-specific configuration (JSON)
+  gameConfig    String   @default("{}")
+  
+  // Auto management
+  autoStart     Boolean  @default(true)
+  autoRestart   Boolean  @default(true)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }

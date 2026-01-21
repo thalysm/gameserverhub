@@ -28,92 +28,91 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { LayoutProvider } from "@/components/layout-context";
 import { AppLayout } from "@/components/app-layout";
 import { getGameCover } from "@/lib/games-data";
+import { getGameServers, startGameServer, stopGameServer, deleteGameServer } from "@/actions/server-actions";
+import { toast } from "sonner";
 
-const servers = [
-  {
-    id: 1,
-    name: "Survival Brasil",
-    slug: "minecraft",
-    game: "Minecraft",
-    gameImage: "/games/minecraft.jpg",
-    status: "online",
-    players: { current: 24, max: 50 },
-    host: "mc.meusite.com.br",
-    port: 25565,
-    cpu: 45,
-    ram: 62,
-    uptime: "3d 14h",
-    version: "1.20.4",
-  },
-  {
-    id: 2,
-    name: "Competitivo 128tick",
-    slug: "cs2",
-    game: "Counter-Strike 2",
-    gameImage: "/games/cs2.jpg",
-    status: "online",
-    players: { current: 8, max: 10 },
-    host: "cs2.meusite.com.br",
-    port: 27015,
-    cpu: 28,
-    ram: 35,
-    uptime: "12h 45m",
-    version: "Latest",
-  },
-  {
-    id: 3,
-    name: "Nordschleife Server",
-    slug: "assetto-corsa",
-    game: "Assetto Corsa",
-    gameImage: "/games/assetto-corsa.jpg",
-    status: "offline",
-    players: { current: 0, max: 24 },
-    host: "race.meusite.com.br",
-    port: 9600,
-    cpu: 0,
-    ram: 0,
-    uptime: "-",
-    version: "1.16.4",
-  },
-  {
-    id: 4,
-    name: "Survival PVE",
-    slug: "rust",
-    game: "Rust",
-    gameImage: "/games/rust.jpg",
-    status: "starting",
-    players: { current: 0, max: 100 },
-    host: "rust.meusite.com.br",
-    port: 28015,
-    cpu: 15,
-    ram: 22,
-    uptime: "2m",
-    version: "Latest",
-  },
-];
+type GameServer = {
+  id: string;
+  name: string;
+  port: number;
+  customHost: string | null;
+  ramMb: number;
+  cpuCores: number;
+  status: string;
+  containerName: string;
+  createdAt: Date;
+  game: {
+    id: string;
+    slug: string;
+    name: string;
+    category: string;
+  };
+};
 
-function ServerCard({ server }: { server: (typeof servers)[0] }) {
+function ServerCard({ server, onRefresh }: { server: GameServer; onRefresh: () => void }) {
   const [copied, setCopied] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const copyHost = () => {
-    navigator.clipboard.writeText(`${server.host}:${server.port}`);
+    const host = server.customHost || `localhost:${server.port}`;
+    navigator.clipboard.writeText(host);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   const statusConfig = {
-    online: { color: "bg-green-500", text: "Online", textColor: "text-green-400" },
-    offline: { color: "bg-red-500", text: "Offline", textColor: "text-red-400" },
+    running: { color: "bg-green-500", text: "Online", textColor: "text-green-400" },
+    stopped: { color: "bg-red-500", text: "Offline", textColor: "text-red-400" },
     starting: { color: "bg-amber-500 animate-pulse", text: "Starting", textColor: "text-amber-400" },
+    stopping: { color: "bg-orange-500", text: "Stopping", textColor: "text-orange-400" },
+    error: { color: "bg-red-600", text: "Error", textColor: "text-red-500" },
   };
 
-  const status = statusConfig[server.status as keyof typeof statusConfig];
+  const status = statusConfig[server.status as keyof typeof statusConfig] || statusConfig.stopped;
+
+  const handleStart = async () => {
+    setIsLoading(true);
+    const result = await startGameServer(server.id);
+    if (result.error) {
+      toast.error(result.error);
+    } else {
+      toast.success("Server started!");
+      onRefresh();
+    }
+    setIsLoading(false);
+  };
+
+  const handleStop = async () => {
+    setIsLoading(true);
+    const result = await stopGameServer(server.id);
+    if (result.error) {
+      toast.error(result.error);
+    } else {
+      toast.success("Server stopped!");
+      onRefresh();
+    }
+    setIsLoading(false);
+  };
+
+  const handleDelete = async () => {
+    if (!confirm("Are you sure you want to delete this server?")) return;
+
+    setIsLoading(true);
+    const result = await deleteGameServer(server.id);
+    if (result.error) {
+      toast.error(result.error);
+    } else {
+      toast.success("Server deleted!");
+      onRefresh();
+    }
+    setIsLoading(false);
+  };
 
   return (
     <div className="glass glass-hover rounded-xl p-5 transition-all">
@@ -121,8 +120,8 @@ function ServerCard({ server }: { server: (typeof servers)[0] }) {
         <div className="relative h-24 w-16 shrink-0 overflow-hidden rounded-lg">
           <Link href={`/servers/${server.id}`}>
             <Image
-              src={getGameCover(server.slug)}
-              alt={server.game}
+              src={getGameCover(server.game.slug)}
+              alt={server.game.name}
               fill
               className="object-cover"
             />
@@ -139,14 +138,14 @@ function ServerCard({ server }: { server: (typeof servers)[0] }) {
             <span className={cn("h-2.5 w-2.5 shrink-0 rounded-full", status.color)} />
             <span className={cn("text-xs font-medium", status.textColor)}>{status.text}</span>
           </div>
-          <p className="text-sm text-muted-foreground">{server.game} - {server.version}</p>
+          <p className="text-sm text-muted-foreground">{server.game.name}</p>
 
           <button
             onClick={copyHost}
             className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             <code className="font-mono">
-              {server.host}:{server.port}
+              {server.customHost || `localhost:${server.port}`}
             </code>
             {copied ? (
               <Check className="h-3.5 w-3.5 text-green-500" />
@@ -159,57 +158,30 @@ function ServerCard({ server }: { server: (typeof servers)[0] }) {
         <div className="hidden items-center gap-6 xl:flex">
           <div className="text-center">
             <div className="flex items-center gap-1.5">
-              <Users className="h-4 w-4 text-muted-foreground" />
-              <span className="text-lg font-semibold text-foreground">
-                {server.players.current}
-              </span>
-              <span className="text-muted-foreground">/ {server.players.max}</span>
-            </div>
-            <span className="text-xs text-muted-foreground">Players</span>
-          </div>
-
-          <div className="text-center">
-            <div className="flex items-center gap-1.5">
               <Cpu className="h-4 w-4 text-muted-foreground" />
-              <span className={cn(
-                "text-lg font-semibold",
-                server.cpu > 80 ? "text-red-400" : server.cpu > 50 ? "text-amber-400" : "text-foreground"
-              )}>
-                {server.cpu}%
-              </span>
+              <span className="text-lg font-semibold text-foreground">{server.cpuCores}</span>
             </div>
-            <span className="text-xs text-muted-foreground">CPU</span>
+            <span className="text-xs text-muted-foreground">Cores</span>
           </div>
 
           <div className="text-center">
             <div className="flex items-center gap-1.5">
               <HardDrive className="h-4 w-4 text-muted-foreground" />
-              <span className={cn(
-                "text-lg font-semibold",
-                server.ram > 80 ? "text-red-400" : server.ram > 50 ? "text-amber-400" : "text-foreground"
-              )}>
-                {server.ram}%
-              </span>
+              <span className="text-lg font-semibold text-foreground">{server.ramMb / 1024}GB</span>
             </div>
             <span className="text-xs text-muted-foreground">RAM</span>
-          </div>
-
-          <div className="text-center">
-            <div className="flex items-center gap-1.5">
-              <Clock className="h-4 w-4 text-muted-foreground" />
-              <span className="text-lg font-semibold text-foreground">{server.uptime}</span>
-            </div>
-            <span className="text-xs text-muted-foreground">Uptime</span>
           </div>
         </div>
 
         <div className="flex items-center gap-1">
-          {server.status === "online" ? (
+          {server.status === "running" ? (
             <Button
               variant="ghost"
               size="icon"
               className="h-10 w-10 text-red-400 hover:bg-red-500/20 hover:text-red-400"
               title="Stop server"
+              onClick={handleStop}
+              disabled={isLoading}
             >
               <Square className="h-4 w-4" />
             </Button>
@@ -228,6 +200,8 @@ function ServerCard({ server }: { server: (typeof servers)[0] }) {
               size="icon"
               className="h-10 w-10 text-green-400 hover:bg-green-500/20 hover:text-green-400"
               title="Start server"
+              onClick={handleStart}
+              disabled={isLoading}
             >
               <Play className="h-4 w-4" />
             </Button>
@@ -237,7 +211,7 @@ function ServerCard({ server }: { server: (typeof servers)[0] }) {
             size="icon"
             className="h-10 w-10 text-muted-foreground hover:text-foreground"
             title="Restart"
-            disabled={server.status === "offline"}
+            disabled={server.status === "stopped" || isLoading}
           >
             <RotateCcw className="h-4 w-4" />
           </Button>
@@ -253,9 +227,11 @@ function ServerCard({ server }: { server: (typeof servers)[0] }) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48 border-white/5 bg-background/80 backdrop-blur-xl">
-              <DropdownMenuItem className="text-foreground focus:bg-white/10">
-                <Terminal className="mr-2 h-4 w-4" />
-                Console
+              <DropdownMenuItem className="text-foreground focus:bg-white/10" asChild>
+                <Link href={`/servers/${server.id}`}>
+                  <Terminal className="mr-2 h-4 w-4" />
+                  Console
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuItem className="text-foreground focus:bg-white/10">
                 <FileText className="mr-2 h-4 w-4" />
@@ -266,40 +242,38 @@ function ServerCard({ server }: { server: (typeof servers)[0] }) {
                 Settings
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-border/50" />
-              <DropdownMenuItem className="text-destructive focus:bg-white/10">
+              <DropdownMenuItem
+                className="text-destructive focus:bg-white/10"
+                onClick={handleDelete}
+                disabled={isLoading}
+              >
                 <Trash2 className="mr-2 h-4 w-4" />
                 Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-      </div >
-
-      {/* Mobile stats */}
-      < div className="mt-4 flex items-center gap-4 xl:hidden" >
-        <div className="flex items-center gap-1.5 text-sm">
-          <Users className="h-4 w-4 text-muted-foreground" />
-          <span>{server.players.current}/{server.players.max}</span>
-        </div>
-        <div className="flex items-center gap-1.5 text-sm">
-          <Cpu className="h-4 w-4 text-muted-foreground" />
-          <span>{server.cpu}%</span>
-        </div>
-        <div className="flex items-center gap-1.5 text-sm">
-          <HardDrive className="h-4 w-4 text-muted-foreground" />
-          <span>{server.ram}%</span>
-        </div>
-        <div className="flex items-center gap-1.5 text-sm">
-          <Clock className="h-4 w-4 text-muted-foreground" />
-          <span>{server.uptime}</span>
-        </div>
-      </div >
-    </div >
+      </div>
+    </div>
   );
 }
 
-function ServidoresContent() {
-  const onlineCount = servers.filter((s) => s.status === "online").length;
+function ServersContent() {
+  const [servers, setServers] = useState<GameServer[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const loadServers = async () => {
+    setLoading(true);
+    const data = await getGameServers();
+    setServers(data as GameServer[]);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    loadServers();
+  }, []);
+
+  const onlineCount = servers.filter((s) => s.status === "running").length;
   const startingCount = servers.filter((s) => s.status === "starting").length;
 
   return (
@@ -319,13 +293,17 @@ function ServidoresContent() {
         </Button>
       </div>
 
-      <div className="space-y-4">
-        {servers.map((server) => (
-          <ServerCard key={server.id} server={server} />
-        ))}
-      </div>
-
-      {servers.length === 0 && (
+      {loading ? (
+        <div className="flex items-center justify-center py-16">
+          <Activity className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      ) : servers.length > 0 ? (
+        <div className="space-y-4">
+          {servers.map((server) => (
+            <ServerCard key={server.id} server={server} onRefresh={loadServers} />
+          ))}
+        </div>
+      ) : (
         <div className="glass flex flex-col items-center justify-center rounded-xl py-16">
           <Server className="mb-4 h-12 w-12 text-muted-foreground" />
           <h3 className="mb-2 text-lg font-semibold text-foreground">No servers created</h3>
@@ -342,10 +320,10 @@ function ServidoresContent() {
   );
 }
 
-export default function ServidoresPage() {
+export default function ServersPage() {
   return (
     <LayoutProvider>
-      <ServidoresContent />
+      <ServersContent />
     </LayoutProvider>
   );
 }
