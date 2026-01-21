@@ -91,7 +91,13 @@ export function StoreHeader() {
               <Link href="/configuracoes">Configurações</Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator className="bg-border/50" />
-            <DropdownMenuItem className="text-destructive focus:bg-white/10">
+            <DropdownMenuItem
+              className="text-destructive focus:bg-white/10 cursor-pointer"
+              onClick={async () => {
+                const { logout } = await import("@/actions/auth-actions");
+                await logout();
+              }}
+            >
               Sair
             </DropdownMenuItem>
           </DropdownMenuContent>

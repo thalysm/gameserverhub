@@ -26,6 +26,8 @@ export const metadata: Metadata = {
   },
 }
 
+import { LayoutProvider } from "@/components/layout-context";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -34,7 +36,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geist.variable} ${geistMono.variable} font-sans antialiased`}>
-        {children}
+        <LayoutProvider>
+          {children}
+        </LayoutProvider>
         <Analytics />
       </body>
     </html>
