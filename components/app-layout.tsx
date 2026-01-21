@@ -4,6 +4,7 @@ import { StoreSidebar } from "@/components/store-sidebar";
 import { StoreHeader } from "@/components/store-header";
 import { useLayout } from "@/components/layout-context";
 import { cn } from "@/lib/utils";
+import { ServerMonitor } from "./server-monitor";
 
 interface AppLayoutProps {
     children: React.ReactNode;
@@ -16,6 +17,7 @@ export function AppLayout({ children, className }: AppLayoutProps) {
     return (
         <div className="min-h-screen bg-background">
             <StoreSidebar />
+            <ServerMonitor />
             <div
                 className={cn(
                     "flex min-h-screen flex-col transition-all duration-300",

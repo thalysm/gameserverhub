@@ -5,15 +5,25 @@ import { AppLayout } from "@/components/app-layout";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { verifySession } from "@/lib/session";
+import { LayoutProvider } from "@/components/layout-context";
 
-function MainContent() {
-  return (
-    <AppLayout>
-      <FeaturedCarousel />
-      <MyServers />
-      <GameStoreGrid />
-    </AppLayout>
-  );
+async function getGamesWithFavorites() {
+  const userId = await verifySession();
+  const games = await db.game.findMany({
+    orderBy: { name: "asc" },
+    take: 6
+  });
+
+  const favorites = userId
+    ? await db.favorite.findMany({ where: { userId } })
+    : [];
+
+  const favoriteIds = new Set(favorites.map((f: any) => f.gameId));
+
+  return games.map((game: any) => ({
+    ...game,
+    isFavorite: favoriteIds.has(game.id)
+  }));
 }
 
 export default async function HomePage() {
@@ -28,7 +38,15 @@ export default async function HomePage() {
     redirect("/login");
   }
 
+  const games = await getGamesWithFavorites();
+
   return (
-    <MainContent />
+    <LayoutProvider>
+      <AppLayout>
+        <FeaturedCarousel />
+        <MyServers />
+        <GameStoreGrid games={games} />
+      </AppLayout>
+    </LayoutProvider>
   );
 }

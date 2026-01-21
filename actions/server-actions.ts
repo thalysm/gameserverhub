@@ -26,12 +26,12 @@ export async function createGameServer(formData: FormData) {
             return { error: "Game not found" };
         }
 
-        // Get first user (TODO: Get from session)
-        const user = await db.user.findFirst();
-        if (!user) {
-            return { error: "No user found. Please complete setup first." };
+        // Get user from session
+        const { verifySession } = await import("@/lib/session");
+        const userId = await verifySession();
+        if (!userId) {
+            return { error: "Não autorizado. Por favor, faça login." };
         }
-        const userId = user.id;
 
         // Generate unique container name
         const containerName = `gsh-${gameSlug}-${Date.now()}`;

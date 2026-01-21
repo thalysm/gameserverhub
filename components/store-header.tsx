@@ -13,6 +13,7 @@ import {
 import { useLayout } from "./layout-context";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { NotificationPopover } from "./notification-popover";
 
 export function StoreHeader() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -46,14 +47,8 @@ export function StoreHeader() {
             <Heart className="h-5 w-5" />
           </Link>
         </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="glass-hover relative h-10 w-10 rounded-lg text-muted-foreground hover:text-foreground"
-        >
-          <Bell className="h-5 w-5" />
-          <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-primary" />
-        </Button>
+        <NotificationPopover />
+
         <Button
           variant="ghost"
           size="icon"
