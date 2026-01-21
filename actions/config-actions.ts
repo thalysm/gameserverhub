@@ -96,18 +96,23 @@ function parseServerProperties(content: string): any {
 }
 
 
-export async function listServerFiles(serverId: string, path: string = "/data") {
+export async function listServerFiles(serverId: string, path?: string) {
     try {
         const server = await db.gameServer.findUnique({
             where: { id: serverId },
+            include: { game: true }
         });
 
         if (!server || !server.containerId) {
             return { error: "Server not found or not running" };
         }
 
-        const files = await listContainerFiles(server.containerId, path);
-        return { files };
+        const rootPath = server.game.slug === 'cs2' ? "/home/steam/cs2-dedicated" : "/data";
+        const finalPath = path || rootPath;
+
+        const { listContainerFiles } = await import("@/lib/docker-files");
+        const files = await listContainerFiles(server.containerId, finalPath);
+        return { files, currentPath: finalPath, rootPath };
     } catch (error) {
         console.error("Error listing files:", error);
         return { error: "Failed to list files" };
@@ -148,10 +153,51 @@ export async function downloadFileFromServer(serverId: string, filePath: string)
         }
 
         const buffer = await downloadFileFromContainer(server.containerId, filePath);
-        return { success: true, buffer };
+        return { success: true, base64: buffer.toString("base64") };
     } catch (error) {
         console.error("Error downloading file:", error);
         return { error: "Failed to download file" };
+    }
+}
+
+export async function readTextFileFromServer(serverId: string, filePath: string) {
+    try {
+        const server = await db.gameServer.findUnique({
+            where: { id: serverId },
+        });
+
+        if (!server || !server.containerId) {
+            return { error: "Server not found or not running" };
+        }
+
+        const buffer = await downloadFileFromContainer(server.containerId, filePath);
+        return { success: true, content: buffer.toString("utf-8") };
+    } catch (error) {
+        console.error("Error reading text file:", error);
+        return { error: "Failed to read file" };
+    }
+}
+
+export async function saveTextFileToServer(serverId: string, filePath: string, content: string) {
+    try {
+        const server = await db.gameServer.findUnique({
+            where: { id: serverId },
+        });
+
+        if (!server || !server.containerId) {
+            return { error: "Server not found or not running" };
+        }
+
+        const buffer = Buffer.from(content, "utf-8");
+        const pathParts = filePath.split("/");
+        const fileName = pathParts.pop() || "file.txt";
+        const dirPath = pathParts.join("/") || "/data";
+
+        await uploadFileToContainer(server.containerId, buffer, fileName, dirPath);
+        return { success: true };
+    } catch (error) {
+        console.error("Error saving text file:", error);
+        return { error: "Failed to save file" };
     }
 }
 

@@ -101,59 +101,64 @@ export async function startGameServer(serverId: string) {
 
         // Parse game config
         const config = JSON.parse(server.gameConfig);
+        const gameSlug = server.game.slug;
 
-        const env: Record<string, string> = {
-            EULA: "TRUE",
+        let env: Record<string, string> = {
             UID: "1000",
             GID: "1000",
-            OVERRIDE_SERVER_PROPERTIES: "false",
         };
 
-        // Dynamically add all config properties as CFG_ variables
-        // The itzg/minecraft-server image converts CFG_KEY_NAME to key-name in server.properties
-        for (const [key, value] of Object.entries(config)) {
-            if (value === undefined || value === null || typeof value === 'object') continue;
+        let internalPort = 25565;
+        let protocol: 'tcp' | 'udp' | 'both' = 'tcp';
+        let dataDir = "/data";
 
-            // Special cases for itzg image
-            if (key === 'version') {
-                env.VERSION = value.toString();
-                continue;
-            }
-            if (key === 'memory' || key === 'ramMb') {
-                env.MEMORY = `${server.ramMb}M`;
-                continue;
-            }
-            if (key === 'eula') {
-                env.EULA = value.toString().toUpperCase();
-                continue;
+        if (gameSlug === 'minecraft') {
+            env = {
+                ...env,
+                EULA: "TRUE",
+                OVERRIDE_SERVER_PROPERTIES: "false",
+                MEMORY: `${server.ramMb}M`,
+            };
+            internalPort = 25565;
+            protocol = 'tcp';
+            dataDir = "/data";
+
+            // Minecraft specific environment variables
+            for (const [key, value] of Object.entries(config)) {
+                if (value === undefined || value === null || typeof value === 'object') continue;
+                if (key === 'version') {
+                    env.VERSION = value.toString();
+                    continue;
+                }
+                const envKey = `CFG_${key.toUpperCase().replace(/-/g, '_')}`;
+                env[envKey] = value.toString();
             }
 
-            // Regular properties: convert key to UPPER_SNAKE_CASE and prefix with CFG_
-            // e.g., max-players -> CFG_MAX_PLAYERS
-            const envKey = `CFG_${key.toUpperCase().replace(/-/g, '_')}`;
-            env[envKey] = value.toString();
+            // Fix permissions and write properties for Minecraft
+            await fixVolumePermissions(`${server.containerName}-data`);
+            const propertiesContent = buildServerProperties(config);
+            await writeToVolume(`${server.containerName}-data`, "server.properties", propertiesContent);
+
+        } else if (gameSlug === 'cs2') {
+            const { buildCS2Env } = await import("@/lib/cs2-utils");
+            const cs2Env = buildCS2Env(config);
+            env = { ...env, ...cs2Env };
+            internalPort = 27015;
+            protocol = 'both'; // CS2 uses UDP for game and TCP for RCON usually, but image handles it
+            dataDir = "/home/steam/cs2-dedicated";
         }
-
-        // Ensure MEMORY is set even if not in config
-        if (!env.MEMORY) {
-            env.MEMORY = `${server.ramMb}M`;
-        }
-
-        // Fix permissions before starting
-        await fixVolumePermissions(`${server.containerName}-data`);
-
-        // Write server.properties directly to volume to ensure it's saved
-        const propertiesContent = buildServerProperties(config);
-        await writeToVolume(`${server.containerName}-data`, "server.properties", propertiesContent);
 
         // Create and start container
         const containerId = await createAndStartContainer({
             name: server.containerName,
             image: server.game.dockerImage,
             port: server.port,
+            internalPort,
+            protocol,
             ramMb: server.ramMb,
             cpuCores: server.cpuCores,
             env,
+            dataDir,
         });
 
         // Update status to running
@@ -312,23 +317,63 @@ export async function getGameServer(serverId: string) {
     }
 }
 
+export async function updateGameServerConfig(serverId: string, configUpdates: any) {
+    try {
+        const server = await db.gameServer.findUnique({
+            where: { id: serverId },
+        });
+
+        if (!server) {
+            return { error: "Server not found" };
+        }
+
+        const currentConfig = JSON.parse(server.gameConfig);
+        const updatedConfig = { ...currentConfig, ...configUpdates };
+
+        await db.gameServer.update({
+            where: { id: serverId },
+            data: {
+                gameConfig: JSON.stringify(updatedConfig),
+            },
+        });
+
+        revalidatePath(`/servers/${serverId}`);
+        return { success: true };
+    } catch (error) {
+        console.error("Error updating server config:", error);
+        return { error: "Failed to update server config" };
+    }
+}
+
 export async function executeServerCommand(serverId: string, command: string) {
     try {
         const server = await db.gameServer.findUnique({
             where: { id: serverId },
+            include: { game: true }
         });
 
         if (!server || !server.containerId) {
             return { error: "Server not found or not running" };
         }
 
-        const { execCommandInContainer } = await import("@/lib/docker");
-        const output = await execCommandInContainer(server.containerId, command);
+        if (server.game.slug === 'cs2') {
+            const config = JSON.parse(server.gameConfig);
+            const rconPassword = config.rconPassword || "gsh-rcon-pass";
 
-        return { success: true, output };
+            const { sendRconCommand } = await import("@/lib/rcon-client");
+            // Try to connect to 127.0.0.1 on the host-bound port
+            const output = await sendRconCommand("127.0.0.1", server.port, rconPassword, command);
+            return { success: true, output };
+        } else {
+            // Default Minecraft behavior
+            const cmd = ['rcon-cli', command];
+            const { execCommandInContainer } = await import("@/lib/docker");
+            const output = await execCommandInContainer(server.containerId, cmd);
+            return { success: true, output };
+        }
     } catch (error) {
         console.error("Error executing command:", error);
-        return { error: "Failed to execute command" };
+        return { error: "Failed to execute command: " + (error as Error).message };
     }
 }
 

@@ -17,7 +17,10 @@ import {
     HardDrive,
     Globe,
     Server as ServerIcon,
+    Map as MapIcon,
 } from "lucide-react";
+import { CS2MapManager } from "@/components/cs2-map-manager";
+import { CS2ProvisioningProgress } from "@/components/cs2-provisioning-progress";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
@@ -30,11 +33,13 @@ import {
     getGameServer,
     startGameServer,
     stopGameServer,
+    restartGameServer,
     deleteGameServer,
 } from "@/actions/server-actions";
 import { ServerTerminal } from "@/components/server-terminal";
 import { ServerStats } from "@/components/server-stats";
 import { ServerSettings } from "@/components/server-settings";
+import { CS2Settings } from "@/components/cs2-settings";
 import { FileManager } from "@/components/file-manager";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -89,6 +94,20 @@ function ServerDetailsContent({ serverId }: { serverId: string }) {
             toast.success("Server started!");
             loadServer();
         }
+        setActionLoading(false);
+    };
+
+    const handleRestart = async () => {
+        setActionLoading(true);
+        toast.promise(restartGameServer(serverId), {
+            loading: 'Restarting server...',
+            success: (result) => {
+                if (result.error) throw new Error(result.error);
+                loadServer();
+                return 'Server restarted!';
+            },
+            error: (err) => err.message
+        });
         setActionLoading(false);
     };
 
@@ -225,7 +244,7 @@ function ServerDetailsContent({ serverId }: { serverId: string }) {
                         )}
                         <Button
                             variant="outline"
-                            onClick={handleStart}
+                            onClick={handleRestart}
                             disabled={!isRunning || actionLoading}
                             className="glass-hover"
                         >
@@ -283,6 +302,13 @@ function ServerDetailsContent({ serverId }: { serverId: string }) {
                 </div>
             </div>
 
+            {/* Provisioning Progress for CS2 */}
+            {server.status === "starting" && server.game.slug === "cs2" && (
+                <div className="mb-6">
+                    <CS2ProvisioningProgress serverId={serverId} />
+                </div>
+            )}
+
             {/* Stats */}
             <div className="mb-6">
                 <ServerStats serverId={serverId} isRunning={isRunning} />
@@ -295,6 +321,12 @@ function ServerDetailsContent({ serverId }: { serverId: string }) {
                         <Terminal className="mr-2 h-4 w-4" />
                         Console
                     </TabsTrigger>
+                    {server.game.slug === 'cs2' && (
+                        <TabsTrigger value="maps" className="data-[state=active]:bg-primary/20">
+                            <MapIcon className="mr-2 h-4 w-4" />
+                            Maps
+                        </TabsTrigger>
+                    )}
                     <TabsTrigger value="settings" className="data-[state=active]:bg-primary/20">
                         <Settings className="mr-2 h-4 w-4" />
                         Settings
@@ -313,16 +345,39 @@ function ServerDetailsContent({ serverId }: { serverId: string }) {
                     <ServerTerminal serverId={serverId} isRunning={isRunning} />
                 </TabsContent>
 
+
+                {server.game.slug === 'cs2' && (
+                    <TabsContent value="maps">
+                        <CS2MapManager
+                            serverId={serverId}
+                            isRunning={isRunning}
+                            gameConfig={server.gameConfig}
+                        />
+                    </TabsContent>
+                )}
+
                 <TabsContent value="settings">
-                    <ServerSettings
-                        serverId={serverId}
-                        isRunning={isRunning}
-                        gameConfig={server.gameConfig}
-                    />
+                    {server.game.slug === 'cs2' ? (
+                        <CS2Settings
+                            serverId={serverId}
+                            isRunning={isRunning}
+                            gameConfig={server.gameConfig}
+                        />
+                    ) : (
+                        <ServerSettings
+                            serverId={serverId}
+                            isRunning={isRunning}
+                            gameConfig={server.gameConfig}
+                        />
+                    )}
                 </TabsContent>
 
                 <TabsContent value="files">
-                    <FileManager serverId={serverId} isRunning={isRunning} />
+                    <FileManager
+                        serverId={serverId}
+                        isRunning={isRunning}
+                        gameSlug={server.game.slug}
+                    />
                 </TabsContent>
 
                 <TabsContent value="danger">

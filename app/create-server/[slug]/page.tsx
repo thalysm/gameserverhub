@@ -9,18 +9,11 @@ import { LayoutProvider } from "@/components/layout-context";
 import { AppLayout } from "@/components/app-layout";
 import { getGameCover } from "@/lib/games-data";
 import { MinecraftServerForm } from "@/components/minecraft-server-form";
+import { CS2ServerForm } from "@/components/cs2-server-form";
+import { getGameBySlug } from "@/lib/games-data";
 
 function CreateServerContent({ slug }: { slug: string }) {
-  // For now, we'll use static data until we fetch from DB
-  const gameData = {
-    minecraft: {
-      slug: "minecraft",
-      name: "Minecraft",
-      category: "Sandbox",
-    },
-  };
-
-  const game = gameData[slug as keyof typeof gameData];
+  const game = getGameBySlug(slug);
 
   if (!game) {
     return (
@@ -77,7 +70,8 @@ function CreateServerContent({ slug }: { slug: string }) {
         {/* Main Form */}
         <div className="lg:col-span-2">
           {slug === "minecraft" && <MinecraftServerForm />}
-          {slug !== "minecraft" && (
+          {slug === "cs2" && <CS2ServerForm />}
+          {slug !== "minecraft" && slug !== "cs2" && (
             <div className="glass rounded-xl p-6 text-center">
               <p className="text-muted-foreground">
                 Server creation for {game.name} is coming soon!

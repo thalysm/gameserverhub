@@ -11,14 +11,17 @@ export interface ContainerConfig {
     name: string;
     image: string;
     port: number;
+    internalPort: number;
+    protocol: 'tcp' | 'udp' | 'both';
     ramMb: number;
     cpuCores: number;
     env: Record<string, string>;
+    dataDir: string;
 }
 
 export async function createAndStartContainer(config: ContainerConfig): Promise<string> {
     try {
-        // Check if container with this name already exists
+        // ... (existing container removal logic omitted for brevity, but stays same)
         const existingContainers = await docker.listContainers({ all: true });
         const existing = existingContainers.find(c =>
             c.Names.some(name => name === `/${config.name}`)
@@ -27,39 +30,44 @@ export async function createAndStartContainer(config: ContainerConfig): Promise<
         if (existing) {
             console.log(`Container ${config.name} already exists. Removing to apply fresh configuration...`);
             const container = docker.getContainer(existing.Id);
-
-            // If it's running, stop it first
             if (existing.State === 'running') {
                 await container.stop({ t: 2 });
             }
-
             await container.remove({ force: true });
         }
 
-        // Pull image if not exists
         await pullImage(config.image);
 
-        // Create container
+        const portKey = `${config.internalPort}/${config.protocol === 'both' ? 'tcp' : config.protocol}`;
+        const portBindings: any = {};
+        const exposedPorts: any = {};
+
+        if (config.protocol === 'both') {
+            portBindings[`${config.internalPort}/tcp`] = [{ HostPort: config.port.toString() }];
+            portBindings[`${config.internalPort}/udp`] = [{ HostPort: config.port.toString() }];
+            exposedPorts[`${config.internalPort}/tcp`] = {};
+            exposedPorts[`${config.internalPort}/udp`] = {};
+        } else {
+            portBindings[`${config.internalPort}/${config.protocol}`] = [{ HostPort: config.port.toString() }];
+            exposedPorts[`${config.internalPort}/${config.protocol}`] = {};
+        }
+
         const container = await docker.createContainer({
             name: config.name,
             Image: config.image,
             Env: Object.entries(config.env).map(([key, value]) => `${key}=${value}`),
             HostConfig: {
-                PortBindings: {
-                    '25565/tcp': [{ HostPort: config.port.toString() }],
-                },
-                Memory: config.ramMb * 1024 * 1024, // Convert MB to bytes
-                NanoCpus: config.cpuCores * 1000000000, // Convert cores to nanocpus
+                PortBindings: portBindings,
+                Memory: config.ramMb * 1024 * 1024,
+                NanoCpus: config.cpuCores * 1000000000,
                 RestartPolicy: {
                     Name: 'unless-stopped',
                 },
                 Binds: [
-                    `${config.name}-data:/data`,
+                    `${config.name}-data:${config.dataDir}`,
                 ],
             },
-            ExposedPorts: {
-                '25565/tcp': {},
-            },
+            ExposedPorts: exposedPorts,
         });
 
         // Start container
@@ -143,12 +151,12 @@ export async function getContainerLogs(containerId: string, tail: number = 100):
 
 export async function execCommandInContainer(
     containerId: string,
-    command: string
+    cmd: string[]
 ): Promise<string> {
     try {
         const container = docker.getContainer(containerId);
         const exec = await container.exec({
-            Cmd: ['rcon-cli', command],
+            Cmd: cmd,
             AttachStdout: true,
             AttachStderr: true,
         });
