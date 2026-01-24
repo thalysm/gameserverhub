@@ -5,8 +5,9 @@ import { LayoutProvider } from "@/components/layout-context";
 import { cn } from "@/lib/utils";
 import { HostsSettings } from "@/components/settings/hosts-settings";
 import { GeneralSettings } from "@/components/settings/general-settings";
+import { GameUpdatesSettings } from "@/components/settings/game-updates-settings";
 import { useState } from "react";
-import { Globe, Settings, Server, Bell, Activity, Zap } from "lucide-react";
+import { Globe, Settings, Server, Bell, Activity, Zap, Gamepad2 } from "lucide-react";
 import { SystemStatus } from "@/components/settings/system-status";
 import { PortPoolSettings } from "@/components/settings/port-pool-settings";
 
@@ -15,7 +16,7 @@ import { PortPoolSettings } from "@/components/settings/port-pool-settings";
 const tabs = [
   { id: "geral", label: "General", icon: Settings },
   { id: "hosts", label: "Hosts & Domains", icon: Globe },
-
+  { id: "metadata", label: "Game Metadata", icon: Gamepad2 },
   { id: "sistema", label: "System Status", icon: Activity },
   { id: "rede", label: "Connectivity", icon: Zap },
   { id: "notificacoes", label: "Notifications", icon: Bell },
@@ -55,6 +56,7 @@ function SettingsContent() {
         <div className="min-w-0 flex-1">
           {activeTab === "geral" && <GeneralSettings />}
           {activeTab === "hosts" && <HostsSettings />}
+          {activeTab === "metadata" && <GameUpdatesSettings />}
 
           {activeTab === "sistema" && (
             <div className="glass rounded-xl p-6">

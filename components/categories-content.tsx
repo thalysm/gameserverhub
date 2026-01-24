@@ -80,7 +80,7 @@ function GameMiniCard({ game }: { game: Game }) {
                     >
                         <Link href={`/create-server/${game.slug}`}>
                             <Plus className="mr-1 h-3 w-3" />
-                            Criar
+                            Create
                         </Link>
                     </Button>
                 </div>
@@ -98,7 +98,7 @@ function CategorySection({ category }: { category: Category }) {
                     <p className="text-sm text-muted-foreground">{category.description}</p>
                 </div>
                 <Button variant="ghost" className="text-sm text-muted-foreground hover:text-foreground">
-                    Ver tudo
+                    View all
                     <ChevronRight className="ml-1 h-4 w-4" />
                 </Button>
             </div>
@@ -120,10 +120,10 @@ export function CategoriesContent({ categories }: CategoriesContentProps) {
             <div className="mb-6">
                 <div className="flex items-center gap-2">
                     <LayoutGrid className="h-6 w-6 text-primary" />
-                    <h1 className="text-2xl font-bold text-foreground">Categorias</h1>
+                    <h1 className="text-2xl font-bold text-foreground">Categories</h1>
                 </div>
                 <p className="mt-1 text-muted-foreground">
-                    {categories.length} categorias, {totalGames} jogos disponíveis
+                    {categories.length} categories, {totalGames} available games
                 </p>
             </div>
 

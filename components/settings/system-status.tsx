@@ -46,10 +46,10 @@ export function SystemStatus() {
                 <div>
                     <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground">
                         <Activity className="h-5 w-5 text-primary" />
-                        Status do Sistema
+                        System Status
                     </h2>
                     <p className="text-sm text-muted-foreground">
-                        Verifique se os serviços necessários estão operacionais.
+                        Check if required services are operational.
                     </p>
                 </div>
                 <Button
@@ -85,7 +85,7 @@ export function SystemStatus() {
                                 "text-xs",
                                 status.loading ? "text-muted-foreground" : (status.online ? "text-green-500" : "text-red-500")
                             )}>
-                                {status.loading ? "Verificando..." : (status.online ? "Operacional" : "Offline")}
+                                {status.loading ? "Checking..." : (status.online ? "Operational" : "Offline")}
                             </p>
                         </div>
                     </div>
@@ -99,7 +99,7 @@ export function SystemStatus() {
                         </div>
                         <div>
                             <p className="text-sm font-medium text-foreground">Database</p>
-                            <p className="text-xs text-blue-500">Conectado (SQLite)</p>
+                            <p className="text-xs text-blue-500">Connected (SQLite)</p>
                         </div>
                     </div>
                 </div>
@@ -119,12 +119,12 @@ export function SystemStatus() {
                                 "text-xs",
                                 status.loading ? "text-muted-foreground" : (status.upnp ? "text-primary font-bold" : "text-red-500")
                             )}>
-                                {status.loading ? "Verificando..." : (status.upnp ? "Redirecionamento Ativo" : "Não detectado")}
+                                {status.loading ? "Checking..." : (status.upnp ? "Forwarding Active" : "Not detected")}
                             </p>
                         </div>
                     </div>
                     {status.upnp && !status.loading && (
-                        <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]" title="Sistema pronto para abrir portas" />
+                        <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]" title="System ready to open ports" />
                     )}
                 </div>
             </div>
@@ -133,10 +133,10 @@ export function SystemStatus() {
                 <div className="glass flex items-start gap-3 rounded-lg border border-red-500/20 bg-red-500/5 p-4 text-sm text-red-400">
                     <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />
                     <div>
-                        <p className="font-semibold">Erro no Docker</p>
+                        <p className="font-semibold">Docker Error</p>
                         <p className="text-xs opacity-80">{status.error}</p>
                         <p className="mt-2 text-xs">
-                            Certifique-se de que o Docker Desktop está aberto e funcionando no seu computador.
+                            Ensure Docker Desktop is open and running on your computer.
                         </p>
                     </div>
                 </div>

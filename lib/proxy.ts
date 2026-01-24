@@ -72,7 +72,32 @@ export async function syncProxy() {
     try {
         console.log('Syncing Universal Proxy Gateway...');
 
-        // 1. Remove old Velocity if it exists
+        // 1. Check if we actually NEED the proxy
+        const activeProxiedServers = await db.gameServer.count({
+            where: {
+                status: 'running',
+                customHost: { not: null }
+            }
+        });
+
+        const gatewayContainer = (await docker.listContainers({ all: true })).find(c =>
+            c.Names.some(n => n === `/${GATEWAY_CONTAINER_NAME}`)
+        );
+
+        if (activeProxiedServers === 0) {
+            console.log('No active servers require proxying. Ensuring Gateway is stopped...');
+            if (gatewayContainer) {
+                const container = docker.getContainer(gatewayContainer.Id);
+                if (gatewayContainer.State === 'running') {
+                    await container.stop();
+                }
+                await container.remove();
+                console.log('Gateway Proxy stopped and removed.');
+            }
+            return;
+        }
+
+        // 2. Remove old Velocity if it exists (Cleanup legacy)
         try {
             const containers = await docker.listContainers({ all: true });
             const velocity = containers.find(c => c.Names.some(n => n === '/gsh-velocity'));
@@ -84,14 +109,16 @@ export async function syncProxy() {
             }
         } catch (e) { }
 
-        // 2. Generate and write Gateway config
+        // 3. Generate and write Gateway config
         console.log('Generating Gateway config...');
         const gatewayConfig = await generateGatewayConfig();
         console.log('Writing Gateway config to volume...');
         await writeToVolume(GATEWAY_VOLUME_NAME, 'nginx.conf', gatewayConfig);
 
-        // 3. Start/Restart Gateway Proxy
+        // 4. Start/Restart Gateway Proxy
         console.log('Starting Gateway Proxy (Nginx)...');
+        // If container exists but config changed, createAndStartContainer handles recreation logic mostly,
+        // but we can trust it to restart/recreate if needed.
         await createAndStartContainer({
             name: GATEWAY_CONTAINER_NAME,
             image: 'nginx:alpine',

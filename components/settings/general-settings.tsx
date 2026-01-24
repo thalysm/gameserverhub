@@ -23,16 +23,16 @@ export function GeneralSettings() {
       <div className="glass rounded-xl p-6">
         <h2 className="mb-6 flex items-center gap-2 text-lg font-semibold text-foreground">
           <Server className="h-5 w-5 text-primary" />
-          Configurações Gerais
+          General Settings
         </h2>
 
         <div className="space-y-6">
           <div>
             <label className="mb-1.5 block text-sm font-medium text-foreground">
-              Nome da Instância
+              Instance Name
             </label>
             <p className="mb-2 text-xs text-muted-foreground">
-              Nome exibido no painel e notificações
+              Name displayed on dashboard and notifications
             </p>
             <input
               type="text"
@@ -46,10 +46,10 @@ export function GeneralSettings() {
 
           <div>
             <label className="mb-1.5 block text-sm font-medium text-foreground">
-              Diretório de Dados
+              Data Directory
             </label>
             <p className="mb-2 text-xs text-muted-foreground">
-              Onde os arquivos dos servidores serão armazenados
+              Where server files will be stored
             </p>
             <div className="flex max-w-md gap-2">
               <input
@@ -72,10 +72,10 @@ export function GeneralSettings() {
 
           <div>
             <label className="mb-1.5 block text-sm font-medium text-foreground">
-              Diretório de Backups
+              Backup Directory
             </label>
             <p className="mb-2 text-xs text-muted-foreground">
-              Onde os backups automáticos serão salvos
+              Where automatic backups will be saved
             </p>
             <div className="flex max-w-md gap-2">
               <input
@@ -98,10 +98,10 @@ export function GeneralSettings() {
 
           <div>
             <label className="mb-1.5 block text-sm font-medium text-foreground">
-              Máximo de Servidores
+              Max Servers
             </label>
             <p className="mb-2 text-xs text-muted-foreground">
-              Limite de servidores que podem rodar simultaneamente
+              Limit of servers that can run simultaneously
             </p>
             <input
               type="number"
@@ -118,15 +118,15 @@ export function GeneralSettings() {
       <div className="glass rounded-xl p-6">
         <h2 className="mb-6 flex items-center gap-2 text-lg font-semibold text-foreground">
           <HardDrive className="h-5 w-5 text-primary" />
-          Automação
+          Automation
         </h2>
 
         <div className="space-y-4">
           <label className="flex cursor-pointer items-center justify-between rounded-lg p-3 transition-colors hover:bg-white/5">
             <div>
-              <p className="font-medium text-foreground">Auto-iniciar servidores</p>
+              <p className="font-medium text-foreground">Auto-start servers</p>
               <p className="text-sm text-muted-foreground">
-                Iniciar servidores marcados automaticamente ao ligar o sistema
+                Automatically start marked servers on system boot
               </p>
             </div>
             <input
@@ -141,9 +141,9 @@ export function GeneralSettings() {
 
           <label className="flex cursor-pointer items-center justify-between rounded-lg p-3 transition-colors hover:bg-white/5">
             <div>
-              <p className="font-medium text-foreground">Atualização automática</p>
+              <p className="font-medium text-foreground">Auto Update</p>
               <p className="text-sm text-muted-foreground">
-                Atualizar servidores de jogos automaticamente quando disponível
+                Automatically update game servers when available
               </p>
             </div>
             <input
@@ -164,7 +164,7 @@ export function GeneralSettings() {
           className="bg-primary text-primary-foreground hover:bg-primary/90"
         >
           <Save className="mr-2 h-4 w-4" />
-          Salvar Configurações
+          Save Settings
         </Button>
       </div>
     </div>

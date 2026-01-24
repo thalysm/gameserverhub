@@ -55,9 +55,9 @@ export function PortPoolSettings() {
         setSaving(true);
         try {
             await updatePortPoolConfig(config.start, config.end);
-            toast.success("Configurações de pool de portas salvas!");
+            toast.success("Port Pool settings saved!");
         } catch (error) {
-            toast.error("Erro ao salvar configurações");
+            toast.error("Error saving settings");
         } finally {
             setSaving(false);
         }
@@ -68,10 +68,10 @@ export function PortPoolSettings() {
         try {
             const { toggleRouterPort } = await import("@/actions/settings-actions");
             await toggleRouterPort(port, gameSlug, enabled);
-            toast.success(enabled ? `Porta ${port} aberta no roteador!` : `Porta ${port} fechada no roteador.`);
+            toast.success(enabled ? `Port ${port} opened on router!` : `Port ${port} closed on router.`);
             await loadData();
         } catch (error) {
-            toast.error("Falha ao modificar configuração no roteador");
+            toast.error("Failed to modify router configuration");
         } finally {
             setSyncingPort(null);
         }
@@ -81,9 +81,9 @@ export function PortPoolSettings() {
         setAutoUpnp(checked);
         try {
             await updateUPNPConfig(checked);
-            toast.success(checked ? "Gestão automática do roteador ativada!" : "Gestão automática desativada.");
+            toast.success(checked ? "Automatic router management enabled!" : "Automatic management disabled.");
         } catch (error) {
-            toast.error("Erro ao atualizar configuração de UPnP");
+            toast.error("Error updating UPnP config");
             setAutoUpnp(!checked); // Rollback
         }
     };
@@ -110,8 +110,8 @@ export function PortPoolSettings() {
                             <Globe className="h-5 w-5 text-primary" />
                         </div>
                         <div>
-                            <p className="font-semibold text-foreground">Roteador (UPnP)</p>
-                            <p className="text-sm text-muted-foreground">Status do redirecionamento automático no roteador</p>
+                            <p className="font-semibold text-foreground">Router (UPnP)</p>
+                            <p className="text-sm text-muted-foreground">Status of automatic router port forwarding</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-6">
@@ -127,7 +127,7 @@ export function PortPoolSettings() {
                         <div className="flex items-center gap-2">
                             <div className={cn("h-2.5 w-2.5 rounded-full", upnpOnline ? "bg-green-500 animate-pulse" : "bg-red-500")} />
                             <span className={cn("text-sm font-medium", upnpOnline ? "text-green-500" : "text-red-500")}>
-                                {upnpOnline ? "Ativo" : "Inativo / Não Suportado"}
+                                {upnpOnline ? "Active" : "Inactive / Not Supported"}
                             </span>
                         </div>
                     </div>
@@ -136,7 +136,7 @@ export function PortPoolSettings() {
                 <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4 max-w-md">
                         <div className="space-y-2">
-                            <Label htmlFor="startPort">Porta Inicial</Label>
+                            <Label htmlFor="startPort">Start Port</Label>
                             <Input
                                 id="startPort"
                                 type="number"
@@ -146,7 +146,7 @@ export function PortPoolSettings() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="endPort">Porta Final</Label>
+                            <Label htmlFor="endPort">End Port</Label>
                             <Input
                                 id="endPort"
                                 type="number"
@@ -157,15 +157,15 @@ export function PortPoolSettings() {
                         </div>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                        Novos servidores receberão automaticamente uma porta dentro deste intervalo.
-                        <strong> O Hub tentará usar primeiro a porta padrão do jogo (ex: 25565 para Minecraft) se ela estiver disponível.</strong>
+                        New servers will automatically receive a port within this range.
+                        <strong> The Hub will try to use the game's default port first (e.g. 25565 for Minecraft) if available.</strong>
                     </p>
                 </div>
 
                 <div className="mt-8">
-                    <h3 className="mb-4 text-sm font-semibold text-foreground">Portas em Uso</h3>
+                    <h3 className="mb-4 text-sm font-semibold text-foreground">Ports in Use</h3>
                     {usedPorts.length === 0 ? (
-                        <p className="text-xs text-muted-foreground italic">Nenhuma porta alocada no momento.</p>
+                        <p className="text-xs text-muted-foreground italic">No ports allocated at the moment.</p>
                     ) : (
                         <div className="grid gap-2">
                             {usedPorts.map((up) => (
@@ -200,7 +200,7 @@ export function PortPoolSettings() {
                                         <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/5 border border-white/10">
                                             <div className={cn("h-1.5 w-1.5 rounded-full", up.isRouterPortOpen ? "bg-green-500" : "bg-red-500")} />
                                             <span className={cn("text-[10px] font-medium uppercase", up.isRouterPortOpen ? "text-green-500" : "text-red-400")}>
-                                                {up.isRouterPortOpen ? "Aberta" : "Fechada"}
+                                                {up.isRouterPortOpen ? "Open" : "Closed"}
                                             </span>
                                         </div>
                                     </div>
@@ -217,7 +217,7 @@ export function PortPoolSettings() {
                         className="bg-primary text-primary-foreground hover:bg-primary/90"
                     >
                         {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                        Salvar Pool
+                        Save Pool
                     </Button>
                 </div>
             </div>
@@ -225,48 +225,48 @@ export function PortPoolSettings() {
             <div className="glass rounded-xl p-6 border border-white/5">
                 <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-foreground">
                     <Info className="h-4 w-4 text-primary" />
-                    Como habilitar o UPnP no seu Roteador
+                    How to enable UPnP on your Router
                 </h3>
                 <div className="space-y-4 text-xs text-muted-foreground leading-relaxed">
-                    <p>O UPnP (Universal Plug and Play) permite que o Hub abra as portas automaticamente no seu modem sem que você precise configurar manualmente.</p>
+                    <p>UPnP (Universal Plug and Play) allows the Hub to open ports automatically on your modem without manual configuration.</p>
 
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div className="space-y-2 rounded-lg bg-white/[0.02] p-3 border border-white/5">
                             <p className="font-medium text-foreground flex items-center gap-1.5">
                                 <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary/20 text-[10px] text-primary">1</span>
-                                Acesse o Painel
+                                Access Panel
                             </p>
-                            <p>Abra seu navegador e digite o IP do roteador (geralmente <code>192.168.0.1</code> ou <code>192.168.1.1</code>).</p>
+                            <p>Open your browser and type the router IP (usually <code>192.168.0.1</code> or <code>192.168.1.1</code>).</p>
                         </div>
                         <div className="space-y-2 rounded-lg bg-white/[0.02] p-3 border border-white/5">
                             <p className="font-medium text-foreground flex items-center gap-1.5">
                                 <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary/20 text-[10px] text-primary">2</span>
-                                Faça Login
+                                Login
                             </p>
-                            <p>Insira o usuário e senha (frequentemente <code>admin/admin</code> ou conforme a etiqueta no modem).</p>
+                            <p>Enter username and password (often <code>admin/admin</code> or per sticker on modem).</p>
                         </div>
                         <div className="space-y-2 rounded-lg bg-white/[0.02] p-3 border border-white/5">
                             <p className="font-medium text-foreground flex items-center gap-1.5">
                                 <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary/20 text-[10px] text-primary">3</span>
-                                Ative o UPnP
+                                Enable UPnP
                             </p>
-                            <p>Procure por "Avançado", "Rede" ou "WAN" e localize a opção <strong>UPnP</strong>. Marque como **Ativado (Enabled)**.</p>
+                            <p>Look for Advanced, Network, or WAN and find the <strong>UPnP</strong> option. Set to <strong>Enabled</strong>.</p>
                         </div>
                         <div className="space-y-2 rounded-lg bg-white/[0.02] p-3 border border-white/5">
                             <p className="font-medium text-foreground flex items-center gap-1.5">
                                 <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary/20 text-[10px] text-primary">4</span>
-                                Reinicie o Servidor
+                                Restart Server
                             </p>
-                            <p>Após ativar, volte aqui e use o botão ⚡ (Zap) para sincronizar a porta do seu servidor.</p>
+                            <p>After enabling, return here and use the ⚡ button to sync your server port.</p>
                         </div>
                     </div>
 
                     <div className="mt-4 rounded-lg bg-amber-500/5 p-3 border border-amber-500/10">
                         <p className="text-amber-400 font-medium mb-1 flex items-center gap-1.5">
                             <Globe className="h-3 w-3" />
-                            Nota sobre Compatibilidade
+                            Compatibility Note
                         </p>
-                        <p>Alguns roteadores de operadoras (como Claro/Vivo) podem ter restrições ou rodar em CGNAT, o que impede a abertura de portas mesmo com UPnP ativo. O Hub tenta lidar com diferentes marcas de modem automaticamente.</p>
+                        <p>Some carrier routers may have restrictions or run on CGNAT, preventing port opening even with UPnP active. The Hub tries to handle different modem brands automatically.</p>
                     </div>
                 </div>
             </div>

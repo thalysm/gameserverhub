@@ -60,25 +60,25 @@ export function HostsSettings() {
 
     const result = await addDomain(newHost.domain);
     if (result.success) {
-      toast.success("Domínio adicionado com sucesso!");
+      toast.success("Domain added successfully!");
       setNewHost({ domain: "" });
       setShowAddForm(false);
       fetchData();
     } else {
-      toast.error(result.error || "Falha ao adicionar domínio");
+      toast.error(result.error || "Failed to add domain");
     }
     setIsSubmitting(false);
   };
 
   const handleDeleteHost = async (id: string) => {
-    if (!confirm("Tem certeza que deseja excluir este domínio? Isso afetará os servidores que o utilizam.")) return;
+    if (!confirm("Are you sure you want to delete this domain? This will affect servers using it.")) return;
 
     const result = await deleteDomain(id);
     if (result.success) {
-      toast.success("Domínio excluído!");
+      toast.success("Domain deleted!");
       fetchData();
     } else {
-      toast.error(result.error || "Falha ao excluir domínio");
+      toast.error(result.error || "Failed to delete domain");
     }
   };
 
@@ -88,12 +88,12 @@ export function HostsSettings() {
     if (result.success) {
       setDnsStatus(prev => ({ ...prev, [id]: { ok: result.isPointed || false, checked: true } }));
       if (result.isPointed) {
-        toast.success("DNS configurado corretamente!");
+        toast.success("DNS configured correctly!");
       } else {
-        toast.error(`DNS ainda não aponta para ${publicIp}.`);
+        toast.error(`DNS does not yet point to ${publicIp}.`);
       }
     } else {
-      toast.error(result.error || "Erro ao verificar DNS");
+      toast.error(result.error || "Error checking DNS");
     }
     setVerifyingId(null);
   };
@@ -119,10 +119,10 @@ export function HostsSettings() {
           <div>
             <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground">
               <Globe className="h-5 w-5 text-primary" />
-              Hosts & Domínios
+              Hosts & Domains
             </h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Configure domínios personalizados. Aponte seu DNS para o IP público abaixo.
+              Configure custom domains. Point your DNS to the public IP below.
             </p>
           </div>
           <Button
@@ -130,14 +130,14 @@ export function HostsSettings() {
             className="bg-primary text-primary-foreground hover:bg-primary/90"
           >
             <Plus className="mr-2 h-4 w-4" />
-            Adicionar Domínio
+            Add Domain
           </Button>
         </div>
 
         <div className="glass mb-6 overflow-hidden rounded-xl border border-white/5">
           <div className="bg-primary/10 px-4 py-3 border-b border-white/5 flex items-center gap-2">
             <Info className="h-4 w-4 text-primary" />
-            <span className="text-xs font-bold text-primary uppercase tracking-wider">Tutorial de Configuração de DNS</span>
+            <span className="text-xs font-bold text-primary uppercase tracking-wider">DNS Configuration Tutorial</span>
           </div>
 
           <div className="p-4 grid gap-6 md:grid-cols-2">
@@ -145,20 +145,20 @@ export function HostsSettings() {
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/20 text-[10px] font-bold text-primary">1</div>
-                <h3 className="font-semibold text-foreground text-sm">Passo 1: Domínio Principal (Registro A)</h3>
+                <h3 className="font-semibold text-foreground text-sm">Step 1: Main Domain (A Record)</h3>
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                No seu provedor de domínio (Cloudflare, GoDaddy, etc), crie um registro do tipo <span className="text-foreground font-bold underline decoration-primary/50">A</span>.
+                In your domain provider (Cloudflare, GoDaddy, etc), create an <span className="text-foreground font-bold underline decoration-primary/50">A</span> record.
               </p>
               <div className="flex items-center gap-3 rounded-lg bg-white/[0.03] p-4 border border-white/5">
                 <div className="flex-1">
-                  <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1 tracking-widest">Valor do IP (Registro @)</p>
+                  <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1 tracking-widest">IP Value (@ Record)</p>
                   <code className="text-xl font-black text-primary tracking-tighter">{publicIp}</code>
                 </div>
                 <button
                   onClick={() => copyToClipboard(publicIp, 'ip')}
                   className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl transition-all active:scale-95"
-                  title="Copiar IP"
+                  title="Copy IP"
                 >
                   {copiedId === 'ip' ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4 text-muted-foreground" />}
                 </button>
@@ -169,23 +169,23 @@ export function HostsSettings() {
             <div className="space-y-4 border-l border-white/5 pl-6">
               <div className="flex items-center gap-2">
                 <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/20 text-[10px] font-bold text-primary">2</div>
-                <h3 className="font-semibold text-foreground text-sm">Passo 2: Subdomínios (Registro CNAME)</h3>
+                <h3 className="font-semibold text-foreground text-sm">Step 2: Subdomains (CNAME Record)</h3>
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Para cada servidor (ex: <span className="text-foreground font-bold">play</span>.site.com), crie um <span className="text-foreground font-bold underline decoration-primary/50">CNAME</span> apontando para o seu domínio principal:
+                For each server (e.g. <span className="text-foreground font-bold">play</span>.site.com), create a <span className="text-foreground font-bold underline decoration-primary/50">CNAME</span> pointing to your main domain:
               </p>
               <div className="space-y-3 rounded-lg bg-white/[0.03] p-4 border border-white/5">
                 <div className="flex justify-between items-center text-[11px]">
-                  <span className="text-muted-foreground font-medium uppercase tracking-widest text-[9px]">Tipo:</span>
+                  <span className="text-muted-foreground font-medium uppercase tracking-widest text-[9px]">Type:</span>
                   <span className="font-mono text-foreground font-bold bg-white/5 px-2 py-1 rounded">CNAME</span>
                 </div>
                 <div className="flex justify-between items-center text-[11px]">
-                  <span className="text-muted-foreground font-medium uppercase tracking-widest text-[9px]">Nome (Host):</span>
+                  <span className="text-muted-foreground font-medium uppercase tracking-widest text-[9px]">Name (Host):</span>
                   <span className="font-mono text-foreground font-bold bg-white/5 px-2 py-1 rounded">play / mc / server</span>
                 </div>
                 <div className="flex justify-between items-center text-[11px]">
-                  <span className="text-muted-foreground font-medium uppercase tracking-widest text-[9px]">Alvo (Target):</span>
-                  <span className="font-mono text-primary font-bold bg-primary/5 px-2 py-1 rounded border border-primary/20">seu-dominio.com</span>
+                  <span className="text-muted-foreground font-medium uppercase tracking-widest text-[9px]">Target:</span>
+                  <span className="font-mono text-primary font-bold bg-primary/5 px-2 py-1 rounded border border-primary/20">your-domain.com</span>
                 </div>
               </div>
             </div>
@@ -197,7 +197,7 @@ export function HostsSettings() {
                 <span className="text-yellow-500 text-[10px] font-black">!</span>
               </div>
               <p className="text-[11px] text-muted-foreground leading-snug">
-                <span className="text-foreground font-bold">Por que usar CNAME?</span> Se o seu IP mudar futuramente, você só precisará atualizar o Passo 1 (Registro A). Todos os seus subdomínios continuarão funcionando automaticamente.
+                <span className="text-foreground font-bold">Why use CNAME?</span> If your IP changes in the future, you only need to update Step 1 (A Record). All subdomains will keep working automatically.
               </p>
             </div>
           </div>
@@ -205,15 +205,15 @@ export function HostsSettings() {
 
         {showAddForm && (
           <div className="glass mb-6 rounded-lg p-4 animate-in fade-in slide-in-from-top-2">
-            <h3 className="mb-4 font-medium text-foreground">Novo Domínio</h3>
+            <h3 className="mb-4 font-medium text-foreground">New Domain</h3>
             <div className="grid gap-4 sm:grid-cols-1">
               <div>
                 <label className="mb-1.5 block text-sm text-muted-foreground">
-                  Domínio Principal
+                  Main Domain
                 </label>
                 <input
                   type="text"
-                  placeholder="meusite.com.br"
+                  placeholder="mysite.com"
                   value={newHost.domain}
                   onChange={(e) =>
                     setNewHost({ ...newHost, domain: e.target.value })
@@ -229,7 +229,7 @@ export function HostsSettings() {
                 onClick={() => setShowAddForm(false)}
                 className="text-muted-foreground hover:text-foreground"
               >
-                Cancelar
+                Cancel
               </Button>
               <Button
                 onClick={handleAddHost}
@@ -237,7 +237,7 @@ export function HostsSettings() {
                 className="bg-primary text-primary-foreground hover:bg-primary/90"
               >
                 {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                Adicionar
+                Add
               </Button>
             </div>
           </div>
@@ -246,7 +246,7 @@ export function HostsSettings() {
         <div className="space-y-3">
           {hosts.length === 0 ? (
             <div className="py-8 text-center text-sm text-muted-foreground">
-              Nenhum domínio configurado.
+              No domains configured.
             </div>
           ) : (
             hosts.map((host) => (
@@ -288,7 +288,7 @@ export function HostsSettings() {
                           "text-[10px] font-bold uppercase",
                           dnsStatus[host.id]?.ok ? "text-green-500" : "text-red-500"
                         )}>
-                          • {dnsStatus[host.id]?.ok ? "DNS OK" : "DNS PENDENTE"}
+                          • {dnsStatus[host.id]?.ok ? "DNS OK" : "DNS PENDING"}
                         </span>
                       )}
                     </div>
@@ -308,7 +308,7 @@ export function HostsSettings() {
                     ) : (
                       <RefreshCw className="h-3.5 w-3.5" />
                     )}
-                    Verificar DNS
+                    Verify DNS
                   </Button>
                   <Button
                     variant="ghost"
