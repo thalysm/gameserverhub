@@ -107,6 +107,19 @@ async function main() {
             supportsTcp: true,
             supportsUdp: true,
             dockerImage: 'thijsvanloef/palworld-server-docker',
+        },
+        {
+            slug: 'hytale',
+            name: 'Hytale',
+            category: 'Sandbox',
+            description: 'Servidor dedicado Hytale com download automático e atualizações.',
+            image: '/games/hytale.jpg',
+            defaultPort: 5520,
+            minRam: 4096,
+            recommendedRam: 8192,
+            supportsTcp: false,
+            supportsUdp: true,
+            dockerImage: 'indifferentbroccoli/hytale-server-docker',
         }
     ];
 

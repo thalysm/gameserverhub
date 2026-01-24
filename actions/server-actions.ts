@@ -220,11 +220,40 @@ export async function startGameServer(serverId: string) {
             } catch (error) {
                 console.error('Failed to prepare Terraria serverconfig:', error);
             }
+        } else if (gameSlug === 'hytale') {
+            const { buildHytaleEnv } = await import("@/lib/hytale-utils");
+            const hytaleEnv = buildHytaleEnv(config);
+            env = { ...env, ...hytaleEnv };
+            internalPort = 5520;
+            protocol = 'udp';
+            dataDir = "/home/hytale/server-files";
         }
 
-        // Enable TTY for Terraria (required by beardedio/terraria)
+        let entrypoint: string[] | undefined;
+        if (gameSlug === 'hytale') {
+            // Override entrypoint to prevent crash loop if jar is missing
+            entrypoint = [
+                "/bin/sh",
+                "-c",
+                "echo 'Checking for HytaleServer.jar...'; " +
+                "JAR_PATH='/home/hytale/server-files/Server/HytaleServer.jar'; " +
+                "if [ ! -f \"$JAR_PATH\" ]; then " +
+                "  echo 'HytaleServer.jar NOT FOUND at ' $JAR_PATH; " +
+                "  echo 'Please upload the server files using the File Manager.'; " +
+                "  echo 'The server will stay online in maintenance mode waiting for files.'; " +
+                "  while [ ! -f \"$JAR_PATH\" ]; do sleep 10; done; " +
+                "  echo 'File detected! Starting server...'; " +
+                "fi; " +
+                "echo 'Starting Hytale Server...'; " +
+                "java -Xmx${MAX_MEMORY:-4G} -Xms${MAX_MEMORY:-4G} -jar \"$JAR_PATH\""
+            ];
+            // Ensure MAX_MEMORY is set correctly from server allocation
+            env.MAX_MEMORY = `${server.ramMb}M`;
+        }
+
+        // Enable TTY for Terraria (required by beardedio/terraria) and Hytale
         let tty = false;
-        if (gameSlug === 'terraria') {
+        if (gameSlug === 'terraria' || gameSlug === 'hytale') {
             tty = true;
         }
 
@@ -240,6 +269,7 @@ export async function startGameServer(serverId: string) {
             env,
             dataDir,
             tty,
+            // entrypoint, // Removed custom entrypoint to let image handle init
         });
 
         // Open port in firewall

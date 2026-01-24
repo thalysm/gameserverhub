@@ -7,7 +7,8 @@ import {
     uploadFileToContainer,
     downloadFileFromContainer,
     deleteFileFromContainer,
-    createContainerBackup
+    createContainerBackup,
+    extractContainerArchive
 } from "@/lib/docker-files";
 import { restartGameServer } from "./server-actions";
 import { buildServerProperties } from "@/lib/minecraft-utils";
@@ -96,6 +97,37 @@ function parseServerProperties(content: string): any {
 }
 
 
+
+export async function ensureServerDirectory(serverId: string, path: string) {
+    try {
+        const server = await db.gameServer.findUnique({
+            where: { id: serverId },
+        });
+
+        if (!server || !server.containerId) {
+            return { error: "Server not found or not running" };
+        }
+
+        const { docker } = await import("@/lib/docker");
+        const container = docker.getContainer(server.containerId);
+
+        // Ensure directory exists and has permissions
+        const exec = await container.exec({
+            Cmd: ['sh', '-c', `mkdir -p "${path}" && chown -R 1000:1000 "${path}"`],
+            User: "root",
+            AttachStdout: true,
+            AttachStderr: true,
+        });
+
+        await exec.start({ Detach: false });
+
+        return { success: true };
+    } catch (error) {
+        console.error("Error ensuring directory:", error);
+        return { error: "Failed to create directory" };
+    }
+}
+
 export async function listServerFiles(serverId: string, path?: string) {
     try {
         const server = await db.gameServer.findUnique({
@@ -109,7 +141,8 @@ export async function listServerFiles(serverId: string, path?: string) {
 
         const rootPath = server.game.slug === 'cs2' ? "/home/steam/cs2-dedicated"
             : server.game.slug === 'terraria' ? "/config"
-                : "/data";
+                : server.game.slug === 'hytale' ? "/home/hytale/server-files"
+                    : "/data";
         const finalPath = path || rootPath;
 
         const { listContainerFiles } = await import("@/lib/docker-files");
@@ -121,13 +154,16 @@ export async function listServerFiles(serverId: string, path?: string) {
     }
 }
 
-export async function uploadFileToServer(
-    serverId: string,
-    fileBuffer: Buffer,
-    fileName: string,
-    targetPath: string = "/data"
-) {
+export async function uploadFileToServer(formData: FormData) {
     try {
+        const serverId = formData.get("serverId") as string;
+        const targetPath = formData.get("targetPath") as string || "/data";
+        const file = formData.get("file") as File;
+
+        if (!serverId || !file) {
+            return { error: "Missing required fields" };
+        }
+
         const server = await db.gameServer.findUnique({
             where: { id: serverId },
         });
@@ -136,7 +172,14 @@ export async function uploadFileToServer(
             return { error: "Server not found or not running" };
         }
 
-        await uploadFileToContainer(server.containerId, fileBuffer, fileName, targetPath);
+        // Use stream for upload to avoid high memory usage
+        const { Readable } = await import("stream");
+        // @ts-ignore - Readable.fromWeb exists in Node environment
+        const nodeStream = Readable.fromWeb(file.stream());
+
+        await uploadFileToContainer(server.containerId, nodeStream, file.name, targetPath, file.size);
+
+        revalidatePath(`/servers/${serverId}`);
         return { success: true };
     } catch (error) {
         console.error("Error uploading file:", error);
@@ -352,5 +395,27 @@ export async function managePlayerList(
     } catch (error) {
         console.error("Error managing player list:", error);
         return { error: "Failed to update list" };
+    }
+}
+
+export async function extractServerArchive(serverId: string, filePath: string) {
+    try {
+        const server = await db.gameServer.findUnique({
+            where: { id: serverId },
+        });
+
+        if (!server || !server.containerId) {
+            return { error: "Server not found or not running" };
+        }
+
+        const destPath = filePath.substring(0, filePath.lastIndexOf('/'));
+
+        await extractContainerArchive(server.containerId, filePath, destPath || "/data");
+
+        revalidatePath(`/servers/${serverId}`);
+        return { success: true };
+    } catch (error) {
+        console.error("Error extracting archive:", error);
+        return { error: "Failed to extract archive" };
     }
 }

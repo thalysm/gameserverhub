@@ -46,6 +46,23 @@ export async function GET() {
 
             const data = await response.json();
             if (!data || data.length === 0) {
+                if (game.slug === 'hytale') {
+                    // Manual fallback for Hytale
+                    const coverUrl = "https://images.igdb.com/igdb/image/upload/t_720p/co1lat.jpg";
+                    const coverPath = path.join(publicDir, `${game.slug}.jpg`);
+                    const coverBuffer = await fetch(coverUrl).then(res => res.arrayBuffer());
+                    fs.writeFileSync(coverPath, Buffer.from(coverBuffer));
+
+                    // Banner fallback
+                    const bannerUrl = "https://github.com/user-attachments/assets/b8b4ae5c-06bb-46a7-8d94-903a04595036";
+                    const bannerPath = path.join(publicDir, `${game.slug}-banner.jpg`);
+                    const bannerBuffer = await fetch(bannerUrl).then(res => res.arrayBuffer());
+                    fs.writeFileSync(bannerPath, Buffer.from(bannerBuffer));
+
+                    results.push({ name: game.name, status: 'success', method: 'fallback' });
+                    continue;
+                }
+
                 results.push({ name: game.name, status: 'failed', reason: 'Not found' });
                 continue;
             }

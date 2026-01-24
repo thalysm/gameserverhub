@@ -2,7 +2,8 @@ export interface Game {
   id: number;
   slug: string;
   name: string;
-  image: string;
+  image: string; // Used for local fallback path
+  dbImage?: string; // Used for database image URL if available
   category: string;
   description: string;
   supportsTcp: boolean;
@@ -164,6 +165,21 @@ export const games: Game[] = [
     minRam: 1024,
     recommendedRam: 2048,
     features: ["Mods", "Autosave", "Multiplayer", "Headless Server"],
+  },
+  {
+    id: 11,
+    slug: "hytale",
+    name: "Hytale",
+    image: "/games/hytale.jpg",
+    category: "Sandbox",
+    description: "Servidor dedicado Hytale com download automático e atualizações.",
+    supportsTcp: false,
+    supportsUdp: true,
+    defaultPort: 5520,
+    favorite: false,
+    minRam: 4096,
+    recommendedRam: 8192,
+    features: ["Auth Handling", "Backups", "AOT Cache", "Downloader CLI"],
   },
 ];
 

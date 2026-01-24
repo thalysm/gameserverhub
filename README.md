@@ -11,7 +11,11 @@ The goal is to provide an intuitive interface where anyone can spin up, configur
 ## ✨ Current Features
 
 - 🚀 **One-Click Deploy**: Spin up servers in seconds using Docker.
-- 📂 **Inline File Manager**: View and edit configuration files (`.cfg`, `.properties`, `.json`, etc.) directly in the browser.
+- 📂 **Inline File Manager**: 
+  - Manage server files directly in the browser.
+  - Supports **Large File Uploads** (up to 10GB).
+  - Built-in **Archive Extraction** (Unzip/Untar) for easy modpack installation.
+  - Editor for configuration files (`.cfg`, `.properties`, `.json`, etc.).
 - 🌐 **Advanced Networking**:
   - **UPnP Support**: Automatic port forwarding for supported routers.
   - **Firewall Management**: Automatic Windows Firewall rule management for server ports.
@@ -32,6 +36,7 @@ Currently, GSH officially supports:
 - ✅ **Minecraft Java Edition** (using the `itzg/minecraft-server` image)
 - ✅ **Counter-Strike 2** (using the `joedwards32/cs2` image)
 - ✅ **Terraria** (using the `beardedio/terraria` image)
+- ✅ **Hytale** (using the `indifferentbroccoli/hytale-server-docker` image)
 
 ### 🔜 Upcoming Games (In Development)
 We are working to add support for:
@@ -56,7 +61,7 @@ We are working to add support for:
 
 ## 🚀 Technologies Used
 
-- **Frontend/Backend**: [Next.js 14](https://nextjs.org/) (App Router)
+- **Frontend/Backend**: [Next.js 15+](https://nextjs.org/) (App Router, Server Actions)
 - **Styling**: Tailwind CSS + Shadcn/UI
 - **Database**: Prisma + SQLite (local default)
 - **Infrastructure**: Docker & Docker Compose

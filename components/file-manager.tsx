@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Folder, File, Upload, Download, Trash2, RefreshCw, ChevronRight, FileCode, HardDrive, Archive, AlertCircle, FileArchive, Edit3, X, Save, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { listServerFiles, uploadFileToServer, deleteServerFile, downloadWorld, uploadWorld, readTextFileFromServer, saveTextFileToServer, downloadFileFromServer } from "@/actions/config-actions";
+import { listServerFiles, uploadFileToServer, deleteServerFile, downloadWorld, uploadWorld, readTextFileFromServer, saveTextFileToServer, downloadFileFromServer, ensureServerDirectory, extractServerArchive } from "@/actions/config-actions";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -61,28 +61,28 @@ export function FileManager({ serverId, isRunning, gameSlug }: FileManagerProps)
 
         setUploading(true);
         const file = e.target.files[0];
-        const reader = new FileReader();
 
-        reader.onload = async () => {
-            try {
-                const buffer = Buffer.from(reader.result as ArrayBuffer);
-                const result = await uploadFileToServer(serverId, buffer, file.name, currentPath);
+        try {
+            const formData = new FormData();
+            formData.append("serverId", serverId);
+            formData.append("file", file);
+            formData.append("targetPath", currentPath);
 
-                if (result.error) {
-                    toast.error(result.error);
-                } else {
-                    toast.success(`File ${file.name} uploaded!`);
-                    loadFiles(currentPath);
-                }
-            } catch (error) {
-                toast.error("Failed to upload file");
-            } finally {
-                setUploading(false);
+            const result = await uploadFileToServer(formData);
+
+            if (result.error) {
+                toast.error(result.error);
+            } else {
+                toast.success(`File ${file.name} uploaded!`);
+                // Small delay to ensure container FS sync
+                setTimeout(() => loadFiles(currentPath), 1000);
             }
-        };
-
-        reader.readAsArrayBuffer(file);
-        e.target.value = ''; // Reset input
+        } catch (error) {
+            toast.error("Failed to upload file");
+        } finally {
+            setUploading(false);
+            if (e.target) e.target.value = ''; // Reset input safely
+        }
     };
 
     const handleWorldUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -283,6 +283,47 @@ export function FileManager({ serverId, isRunning, gameSlug }: FileManagerProps)
                 </div>
             )}
 
+
+            {/* Hytale File Alert - Only for Hytale */}
+            {gameSlug === "hytale" && (
+                <div className="glass rounded-xl p-6 border border-primary/20 bg-primary/5">
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div className="flex items-center gap-4">
+                            <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center">
+                                <FileArchive className="h-6 w-6 text-primary" />
+                            </div>
+                            <div>
+                                <h4 className="text-base font-bold text-foreground">Hytale Server Files</h4>
+                                <p className="text-xs text-muted-foreground">
+                                    Upload the <code>HytaleServer.jar</code> file to the <code>Server</code> folder to start.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                            <Button
+                                variant="outline"
+                                onClick={async () => {
+                                    if (currentPath === rootPath) {
+                                        setLoading(true);
+                                        const target = rootPath + "/Server";
+                                        // Ensure folder exists before navigating
+                                        await ensureServerDirectory(serverId, target);
+                                        setCurrentPath(target);
+                                        loadFiles(target);
+                                    }
+                                }}
+                                disabled={!isRunning || loading}
+                                className="bg-white/5 border-white/10 hover:bg-white/10 h-10 px-4 text-xs"
+                            >
+                                <Folder className="mr-2 h-3 w-3" />
+                                Go to /Server
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Main File Manager */}
             <div className="glass rounded-xl overflow-hidden flex flex-col h-[600px] border border-white/5">
                 {/* Toolbar */}
@@ -466,6 +507,29 @@ export function FileManager({ serverId, isRunning, gameSlug }: FileManagerProps)
                                                                 <Edit3 className="h-4 w-4" />
                                                             </Button>
                                                         )}
+                                                        {file.type === "file" && (file.name.endsWith('.zip') || file.name.endsWith('.tar.gz') || file.name.endsWith('.tar') || file.name.endsWith('.tgz')) && (
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="h-8 w-8 text-amber-500 hover:text-amber-400 hover:bg-amber-500/10"
+                                                                onClick={async () => {
+                                                                    if (!confirm(`Extrair ${file.name}? Isso pode sobrescrever arquivos.`)) return;
+                                                                    setLoading(true);
+                                                                    toast.loading("Extraindo arquivo...", { id: "extract" });
+                                                                    const path = currentPath === "/" ? `/${file.name}` : `${currentPath}/${file.name}`;
+                                                                    const res = await extractServerArchive(serverId, path);
+                                                                    if (res.error) toast.error(res.error, { id: "extract" });
+                                                                    else {
+                                                                        toast.success("Extraído com sucesso!", { id: "extract" });
+                                                                        setTimeout(() => loadFiles(currentPath), 1000);
+                                                                    }
+                                                                    setLoading(false);
+                                                                }}
+                                                                title="Extrair Arquivo"
+                                                            >
+                                                                <Archive className="h-4 w-4" />
+                                                            </Button>
+                                                        )}
                                                         {file.type === "file" && (
                                                             <Button
                                                                 variant="ghost"
@@ -509,6 +573,6 @@ export function FileManager({ serverId, isRunning, gameSlug }: FileManagerProps)
                     <span className="hidden sm:inline">Path: {currentPath}</span>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

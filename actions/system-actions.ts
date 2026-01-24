@@ -100,36 +100,26 @@ export async function updateGameCovers() {
                     "Authorization": `Bearer ${accessToken}`,
                     "Content-Type": "text/plain" // IGDB requires plain text body
                 },
-                body: `search "${game.name}"; fields name, cover; limit 1;`
+                body: `search "${game.name}"; fields name, cover.url; limit 1;`
             });
 
             if (!searchResponse.ok) continue;
 
             const searchData = await searchResponse.json();
-            if (searchData.length === 0 || !searchData[0].cover) continue;
+            if (searchData.length === 0) {
+                console.log(`No game found for ${game.name}`);
+                continue;
+            }
 
-            const coverId = searchData[0].cover;
+            let imageUrl = null;
 
-            // Get cover URL
-            const coverResponse = await fetch("https://api.igdb.com/v4/covers", {
-                method: "POST",
-                headers: {
-                    "Client-ID": clientId,
-                    "Authorization": `Bearer ${accessToken}`,
-                    "Content-Type": "text/plain"
-                },
-                body: `fields url; where id = ${coverId};`
-            });
+            if (searchData[0].cover && searchData[0].cover.url) {
+                imageUrl = searchData[0].cover.url;
+            }
 
-            if (!coverResponse.ok) continue;
-
-            const coverData = await coverResponse.json();
-            if (coverData.length > 0 && coverData[0].url) {
-                // Replace thumb with 1080p or 720p
-                // //images.igdb.com/igdb/image/upload/t_thumb/co1r7x.jpg
-                // default is t_thumb, we want t_cover_big or t_1080p
-                let imageUrl = coverData[0].url;
+            if (imageUrl) {
                 if (imageUrl.startsWith("//")) imageUrl = "https:" + imageUrl;
+                imageUrl = imageUrl.replace("t_thumb", "t_1080p");
 
                 // Use high quality image
                 imageUrl = imageUrl.replace("t_thumb", "t_1080p");
@@ -142,7 +132,7 @@ export async function updateGameCovers() {
         }
 
         await Promise.all(updates);
-        revalidatePath("/jogos");
+        revalidatePath("/games");
         return { success: true, updatedCount: updates.length };
 
     } catch (error) {

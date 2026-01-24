@@ -21,6 +21,7 @@ interface GameCardProps {
         minRam: number;
         supportsTcp: boolean;
         supportsUdp: boolean;
+        image?: string;
     };
     isFavoriteInitial: boolean;
     viewMode?: "grid" | "list";
@@ -50,7 +51,7 @@ export function GameCard({ game, isFavoriteInitial, viewMode = "grid" }: GameCar
             <div className="glass glass-hover flex items-center gap-4 rounded-xl p-4 transition-all">
                 <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg">
                     <Image
-                        src={getGameCover(game.slug)}
+                        src={game.image || getGameCover(game.slug)}
                         alt={game.name}
                         fill
                         className="object-cover"
@@ -101,7 +102,7 @@ export function GameCard({ game, isFavoriteInitial, viewMode = "grid" }: GameCar
         <div className="glass glass-hover group relative overflow-hidden rounded-xl transition-all duration-300 hover:scale-[1.02]">
             <div className="relative aspect-[3/4] w-full overflow-hidden">
                 <Image
-                    src={getGameCover(game.slug)}
+                    src={game.image || getGameCover(game.slug)}
                     alt={game.name}
                     fill
                     className="object-cover transition-transform duration-500 group-hover:scale-110"

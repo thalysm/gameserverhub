@@ -7,6 +7,7 @@ declare global {
 
 const dbPath = process.env.DATABASE_URL || "file:./prisma/app.db";
 
+
 export const db = globalThis.prisma || new PrismaClient({
     datasources: {
         db: {

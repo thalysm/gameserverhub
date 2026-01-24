@@ -35,55 +35,58 @@ function GameMiniCard({ game }: { game: Game }) {
 
     return (
         <div className="glass glass-hover group relative overflow-hidden rounded-xl transition-all duration-300 hover:scale-[1.02]">
-            <div className="relative aspect-[3/4] w-full overflow-hidden">
+            <div className="relative aspect-[3/4] w-full overflow-hidden bg-muted">
                 <Image
-                    src={getGameCover(game.slug)}
+                    src={game.image || getGameCover(game.slug)}
                     alt={game.name}
                     fill
                     className="object-cover transition-transform duration-500 group-hover:scale-110"
+                    onError={(e) => {
+                        e.currentTarget.src = "/placeholder-game.jpg";
+                    }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+            </div>
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
 
-                <button
-                    onClick={() => setIsFavorite(!isFavorite)}
-                    className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/40 backdrop-blur-sm transition-all hover:bg-black/60"
+            <button
+                onClick={() => setIsFavorite(!isFavorite)}
+                className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/40 backdrop-blur-sm transition-all hover:bg-black/60"
+            >
+                <Heart
+                    className={cn(
+                        "h-3.5 w-3.5 transition-colors",
+                        isFavorite ? "fill-red-500 text-red-500" : "text-white"
+                    )}
+                />
+            </button>
+
+            <div className="absolute left-2 top-2 flex gap-1">
+                {game.supportsTcp && (
+                    <span className="rounded bg-blue-500/80 px-1 py-0.5 text-[9px] font-medium text-white backdrop-blur-sm">
+                        TCP
+                    </span>
+                )}
+                {game.supportsUdp && (
+                    <span className="rounded bg-green-500/80 px-1 py-0.5 text-[9px] font-medium text-white backdrop-blur-sm">
+                        UDP
+                    </span>
+                )}
+            </div>
+
+            <div className="absolute bottom-0 left-0 right-0 p-3">
+                <h4 className="mb-2 text-sm font-semibold text-foreground line-clamp-1">
+                    {game.name}
+                </h4>
+                <Button
+                    asChild
+                    size="sm"
+                    className="h-8 w-full bg-primary/20 text-xs text-primary backdrop-blur-sm hover:bg-primary hover:text-primary-foreground"
                 >
-                    <Heart
-                        className={cn(
-                            "h-3.5 w-3.5 transition-colors",
-                            isFavorite ? "fill-red-500 text-red-500" : "text-white"
-                        )}
-                    />
-                </button>
-
-                <div className="absolute left-2 top-2 flex gap-1">
-                    {game.supportsTcp && (
-                        <span className="rounded bg-blue-500/80 px-1 py-0.5 text-[9px] font-medium text-white backdrop-blur-sm">
-                            TCP
-                        </span>
-                    )}
-                    {game.supportsUdp && (
-                        <span className="rounded bg-green-500/80 px-1 py-0.5 text-[9px] font-medium text-white backdrop-blur-sm">
-                            UDP
-                        </span>
-                    )}
-                </div>
-
-                <div className="absolute bottom-0 left-0 right-0 p-3">
-                    <h4 className="mb-2 text-sm font-semibold text-foreground line-clamp-1">
-                        {game.name}
-                    </h4>
-                    <Button
-                        asChild
-                        size="sm"
-                        className="h-8 w-full bg-primary/20 text-xs text-primary backdrop-blur-sm hover:bg-primary hover:text-primary-foreground"
-                    >
-                        <Link href={`/create-server/${game.slug}`}>
-                            <Plus className="mr-1 h-3 w-3" />
-                            Create
-                        </Link>
-                    </Button>
-                </div>
+                    <Link href={`/create-server/${game.slug}`}>
+                        <Plus className="mr-1 h-3 w-3" />
+                        Create
+                    </Link>
+                </Button>
             </div>
         </div>
     );

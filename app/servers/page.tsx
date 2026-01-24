@@ -54,6 +54,7 @@ type GameServer = {
     slug: string;
     name: string;
     category: string;
+    image?: string;
   };
 };
 
@@ -122,7 +123,7 @@ function ServerCard({ server, onRefresh }: { server: GameServer; onRefresh: () =
         <div className="relative h-24 w-16 shrink-0 overflow-hidden rounded-lg">
           <Link href={`/servers/${server.id}`}>
             <Image
-              src={getGameCover(server.game.slug)}
+              src={server.game.image || getGameCover(server.game.slug)}
               alt={server.game.name}
               fill
               className="object-cover"

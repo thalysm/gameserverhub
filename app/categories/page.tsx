@@ -2,6 +2,8 @@ import { LayoutProvider } from "@/components/layout-context";
 import { CategoriesContent } from "@/components/categories-content";
 import { getGamesGroupedByCategory } from "@/actions/game-actions";
 
+export const dynamic = 'force-dynamic';
+
 export default async function CategoriasPage() {
   const categories = await getGamesGroupedByCategory();
 

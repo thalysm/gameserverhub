@@ -67,17 +67,43 @@ function parseLsOutput(output: string): any[] {
 
 export async function uploadFileToContainer(
     containerId: string,
-    fileBuffer: Buffer,
+    fileContent: Buffer | Readable,
     fileName: string,
-    targetPath: string = '/data'
+    targetPath: string = '/data',
+    fileSize?: number
 ): Promise<void> {
     try {
         const container = docker.getContainer(containerId);
 
         // Create tar archive with the file
         const pack = tar.pack();
-        pack.entry({ name: fileName }, fileBuffer);
-        pack.finalize();
+
+        if (Buffer.isBuffer(fileContent)) {
+            pack.entry({ name: fileName }, fileContent);
+            pack.finalize();
+        } else {
+            if (!fileSize) throw new Error("File size required for stream upload");
+            const entry = pack.entry({ name: fileName, size: fileSize }, (err) => {
+                if (err) console.error("Tar entry error:", err);
+                pack.finalize();
+            });
+            fileContent.pipe(entry);
+        }
+
+        // Ensure target path exists and has correct permissions
+        try {
+            // We use 'sh -c' to run multiple commands. Assuming standard Linux container.
+            // Hytale user is usually 1000.
+            const exec = await container.exec({
+                Cmd: ['sh', '-c', `mkdir -p "${targetPath}" && chown -R 1000:1000 "${targetPath}"`],
+                User: "root", // Ensure we run as root to fix permissions
+                AttachStdout: false,
+                AttachStderr: false,
+            });
+            await exec.start({ Detach: false });
+        } catch (e) {
+            console.warn("Failed to ensure directory exists/permissions, trying upload anyway:", e);
+        }
 
         // Upload to container
         await container.putArchive(pack, { path: targetPath });
@@ -175,6 +201,47 @@ export async function createContainerBackup(containerId: string, path: string = 
         });
     } catch (error) {
         console.error("Error creating backup:", error);
+        throw error;
+    }
+}
+
+export async function extractContainerArchive(
+    containerId: string,
+    filePath: string,
+    destPath: string
+): Promise<void> {
+    try {
+        const container = docker.getContainer(containerId);
+
+        let cmd = '';
+        if (filePath.endsWith('.zip')) {
+            cmd = `unzip -o "${filePath}" -d "${destPath}" || jar xf "${filePath}"`;
+        } else if (filePath.endsWith('.tar.gz') || filePath.endsWith('.tgz')) {
+            cmd = `tar -xzf "${filePath}" -C "${destPath}"`;
+        } else if (filePath.endsWith('.tar')) {
+            cmd = `tar -xf "${filePath}" -C "${destPath}"`;
+        } else {
+            throw new Error('Unsupported archive format');
+        }
+
+        const exec = await container.exec({
+            Cmd: ['sh', '-c', `${cmd} && chown -R 1000:1000 "${destPath}"`],
+            User: "root",
+            AttachStdout: true,
+            AttachStderr: true,
+        });
+
+        const stream = await exec.start({ Detach: false });
+
+        await new Promise((resolve, reject) => {
+            let err = '';
+            stream.on('data', (c) => err += c.toString());
+            stream.on('end', () => resolve(true));
+            stream.on('error', reject);
+        });
+
+    } catch (error) {
+        console.error('Error extracting archive:', error);
         throw error;
     }
 }

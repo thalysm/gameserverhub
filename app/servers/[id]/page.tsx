@@ -41,6 +41,7 @@ import { ServerStats } from "@/components/server-stats";
 import { ServerSettings } from "@/components/server-settings";
 import { CS2Settings } from "@/components/cs2-settings";
 import { TerrariaSettings } from "@/components/terraria-settings";
+import { HytaleSettings } from "@/components/hytale-settings";
 import { FileManager } from "@/components/file-manager";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -62,6 +63,7 @@ type GameServer = {
         slug: string;
         name: string;
         category: string;
+        image?: string;
     };
 };
 
@@ -200,10 +202,13 @@ function ServerDetailsContent({ serverId }: { serverId: string }) {
                     <div className="flex items-center gap-4">
                         <div className="relative h-16 w-16 overflow-hidden rounded-xl">
                             <Image
-                                src={getGameCover(server.game.slug)}
+                                src={server.game.image || getGameCover(server.game.slug)}
                                 alt={server.game.name}
                                 fill
                                 className="object-cover"
+                                onError={(e) => {
+                                    e.currentTarget.src = "/placeholder-game.jpg";
+                                }}
                             />
                         </div>
                         <div>
@@ -393,6 +398,12 @@ function ServerDetailsContent({ serverId }: { serverId: string }) {
                         />
                     ) : server.game.slug === 'terraria' ? (
                         <TerrariaSettings
+                            serverId={serverId}
+                            isRunning={isRunning}
+                            gameConfig={server.gameConfig}
+                        />
+                    ) : server.game.slug === 'hytale' ? (
+                        <HytaleSettings
                             serverId={serverId}
                             isRunning={isRunning}
                             gameConfig={server.gameConfig}

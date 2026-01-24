@@ -52,6 +52,8 @@ export function GameUpdatesSettings() {
     };
 
     const handleUpdateCovers = async () => {
+        if (updating) return; // Prevent double clicks
+
         if (!clientId || !clientSecret) {
             toast.error("Please save your Client ID and Secret first.");
             return;

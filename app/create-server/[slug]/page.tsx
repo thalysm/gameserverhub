@@ -1,6 +1,3 @@
-"use client";
-
-import { use } from "react";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
@@ -11,10 +8,11 @@ import { getGameCover } from "@/lib/games-data";
 import { MinecraftServerForm } from "@/components/minecraft-server-form";
 import { CS2ServerForm } from "@/components/cs2-server-form";
 import { TerrariaServerForm } from "@/components/terraria-server-form";
+import { HytaleServerForm } from "@/components/hytale-server-form";
 import { getGameBySlug } from "@/lib/games-data";
 
-function CreateServerContent({ slug }: { slug: string }) {
-  const game = getGameBySlug(slug);
+function CreateServerContent({ slug, game }: { slug: string, game: any }) {
+  // const game = getGameBySlug(slug); // Removed static fetch
 
   if (!game) {
     return (
@@ -50,7 +48,7 @@ function CreateServerContent({ slug }: { slug: string }) {
         <div className="flex items-center gap-4">
           <div className="relative h-16 w-16 overflow-hidden rounded-xl">
             <Image
-              src={getGameCover(game.slug)}
+              src={game.image || getGameCover(game.slug)}
               alt={game.name}
               fill
               className="object-cover"
@@ -73,7 +71,8 @@ function CreateServerContent({ slug }: { slug: string }) {
           {slug === "minecraft" && <MinecraftServerForm />}
           {slug === "cs2" && <CS2ServerForm />}
           {slug === "terraria" && <TerrariaServerForm />}
-          {slug !== "minecraft" && slug !== "cs2" && slug !== "terraria" && (
+          {slug === "hytale" && <HytaleServerForm />}
+          {slug !== "minecraft" && slug !== "cs2" && slug !== "terraria" && slug !== "hytale" && (
             <div className="glass rounded-xl p-6 text-center">
               <p className="text-muted-foreground">
                 Server creation for {game.name} is coming soon!
@@ -107,16 +106,26 @@ function CreateServerContent({ slug }: { slug: string }) {
   );
 }
 
-export default function CreateServerPage({
+import { db } from "@/lib/db";
+
+async function getGameData(slug: string) {
+  const game = await db.game.findFirst({
+    where: { slug }
+  });
+  return game;
+}
+
+export default async function CreateServerPage({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  const { slug } = use(params);
+  const { slug } = await params;
+  const game = await getGameData(slug);
 
   return (
     <LayoutProvider>
-      <CreateServerContent slug={slug} />
+      <CreateServerContent game={game} slug={slug} />
     </LayoutProvider>
   );
 }
