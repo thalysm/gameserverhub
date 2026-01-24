@@ -17,11 +17,23 @@ export interface ContainerConfig {
     cpuCores: number;
     env: Record<string, string>;
     dataDir: string;
+    tty?: boolean;
+    extraPorts?: { port: number; internalPort: number; protocol: 'tcp' | 'udp' | 'both' }[];
 }
 
 export async function createAndStartContainer(config: ContainerConfig): Promise<string> {
     try {
-        // ... (existing container removal logic omitted for brevity, but stays same)
+        // Ensure network exists
+        const networks = await docker.listNetworks();
+        if (!networks.find(n => n.Name === 'game-server-hub_app-network')) {
+            console.log('Creating network game-server-hub_app-network...');
+            await docker.createNetwork({
+                Name: 'game-server-hub_app-network',
+                Driver: 'bridge'
+            });
+        }
+
+        // ...
         const existingContainers = await docker.listContainers({ all: true });
         const existing = existingContainers.find(c =>
             c.Names.some(name => name === `/${config.name}`)
@@ -42,14 +54,40 @@ export async function createAndStartContainer(config: ContainerConfig): Promise<
         const portBindings: any = {};
         const exposedPorts: any = {};
 
-        if (config.protocol === 'both') {
-            portBindings[`${config.internalPort}/tcp`] = [{ HostPort: config.port.toString() }];
-            portBindings[`${config.internalPort}/udp`] = [{ HostPort: config.port.toString() }];
-            exposedPorts[`${config.internalPort}/tcp`] = {};
-            exposedPorts[`${config.internalPort}/udp`] = {};
-        } else {
-            portBindings[`${config.internalPort}/${config.protocol}`] = [{ HostPort: config.port.toString() }];
-            exposedPorts[`${config.internalPort}/${config.protocol}`] = {};
+        if (config.internalPort > 0) {
+            const addPort = (p: number, ip: number, proto: string) => {
+                if (proto === 'both') {
+                    portBindings[`${ip}/tcp`] = [{ HostPort: p.toString() }];
+                    portBindings[`${ip}/udp`] = [{ HostPort: p.toString() }];
+                    exposedPorts[`${ip}/tcp`] = {};
+                    exposedPorts[`${ip}/udp`] = {};
+                } else {
+                    portBindings[`${ip}/${proto}`] = [{ HostPort: p.toString() }];
+                    exposedPorts[`${ip}/${proto}`] = {};
+                }
+            };
+
+            const addInternalOnly = (ip: number, proto: string) => {
+                if (proto === 'both') {
+                    exposedPorts[`${ip}/tcp`] = {};
+                    exposedPorts[`${ip}/udp`] = {};
+                } else {
+                    exposedPorts[`${ip}/${proto}`] = {};
+                }
+            };
+
+            if (config.port > 0) {
+                addPort(config.port, config.internalPort, config.protocol);
+            } else {
+                addInternalOnly(config.internalPort, config.protocol);
+            }
+
+            // Handle extra ports
+            if (config.extraPorts) {
+                for (const extra of config.extraPorts) {
+                    addPort(extra.port, extra.internalPort, extra.protocol);
+                }
+            }
         }
 
         const container = await docker.createContainer({
@@ -66,8 +104,10 @@ export async function createAndStartContainer(config: ContainerConfig): Promise<
                 Binds: [
                     `${config.name}-data:${config.dataDir}`,
                 ],
+                NetworkMode: 'game-server-hub_app-network',
             },
             ExposedPorts: exposedPorts,
+            Tty: config.tty || false,
         });
 
         // Start container
@@ -126,8 +166,10 @@ export async function getContainerStats(containerId: string): Promise<any> {
                 percent: memoryPercent.toFixed(2),
             },
         };
-    } catch (error) {
-        console.error('Error getting container stats:', error);
+    } catch (error: any) {
+        if (error.statusCode !== 404) {
+            console.error('Error getting container stats:', error);
+        }
         return null;
     }
 }
@@ -143,8 +185,10 @@ export async function getContainerLogs(containerId: string, tail: number = 100):
         });
 
         return logs.toString('utf-8');
-    } catch (error) {
-        console.error('Error getting container logs:', error);
+    } catch (error: any) {
+        if (error.statusCode !== 404) {
+            console.error('Error getting container logs:', error);
+        }
         return '';
     }
 }
@@ -182,8 +226,10 @@ export async function getContainerStatus(containerId: string): Promise<string> {
         const container = docker.getContainer(containerId);
         const info = await container.inspect();
         return info.State.Status;
-    } catch (error) {
-        console.error('Error getting container status:', error);
+    } catch (error: any) {
+        if (error.statusCode !== 404) {
+            console.error('Error getting container status:', error);
+        }
         return 'error';
     }
 }
@@ -258,13 +304,13 @@ export async function writeToVolume(volumeName: string, filePath: string, conten
 
         await pullImage('busybox');
 
-        // Escape content for shell
-        const escapedContent = content.replace(/'/g, "'\\''");
+        // Use base64 to avoid escaping issues with newlines and special characters
+        const base64Content = Buffer.from(content).toString('base64');
 
         const container = await docker.createContainer({
             Image: 'busybox',
             User: '0:0',
-            Cmd: ['sh', '-c', `echo '${escapedContent}' > /data/${filePath} && chown 1000:1000 /data/${filePath} && chmod 664 /data/${filePath}`],
+            Cmd: ['sh', '-c', `echo "${base64Content}" | base64 -d > /data/${filePath} && chown 1000:1000 /data/${filePath} && chmod 664 /data/${filePath}`],
             HostConfig: {
                 Binds: [`${volumeName}:/data`],
             },

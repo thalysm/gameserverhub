@@ -19,6 +19,17 @@ model User {
   servers       GameServer[]
   favorites     Favorite[]
   notifications Notification[]
+  domains       UserDomain[]
+}
+
+model UserDomain {
+  id        String       @id @default(cuid())
+  name      String       @unique // e.g., "meusite.com.br"
+  userId    String
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  servers   GameServer[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
 }
 
 model Game {
@@ -41,16 +52,19 @@ model Game {
 }
 
 model GameServer {
-  id            String   @id @default(cuid())
+  id            String      @id @default(cuid())
   name          String
   gameId        String
-  game          Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  game          Game        @relation(fields: [gameId], references: [id], onDelete: Cascade)
   userId        String
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   // Connection settings
   port          Int
-  customHost    String?
+  customHost    String?     // This could be the full domain or just a reference
+  domainId      String?
+  domain        UserDomain? @relation(fields: [domainId], references: [id])
+  subdomain     String?     // e.g. "mc" to form mc.meusite.com.br
   
   // Resource allocation
   ramMb         Int
@@ -58,18 +72,18 @@ model GameServer {
   
   // Docker management
   containerId   String?
-  containerName String   @unique
-  status        String   @default("stopped") // stopped, starting, running, stopping, error
+  containerName String      @unique
+  status        String      @default("stopped") // stopped, starting, running, stopping, error
   
   // Game-specific configuration (JSON)
-  gameConfig    String   @default("{}")
+  gameConfig    String      @default("{}")
   
   // Auto management
-  autoStart     Boolean  @default(true)
-  autoRestart   Boolean  @default(true)
+  autoStart     Boolean     @default(true)
+  autoRestart   Boolean     @default(true)
   
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 }
 
 model Favorite {
@@ -92,4 +106,10 @@ model Notification {
   message   String
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
+}
+model SystemSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
 }

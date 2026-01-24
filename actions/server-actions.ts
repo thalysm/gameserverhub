@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { createAndStartContainer, stopContainer, removeContainer, fixVolumePermissions, writeToVolume } from "@/lib/docker";
 import { buildServerProperties } from "@/lib/minecraft-utils";
+import { syncProxy } from "@/lib/proxy";
 
 export async function createGameServer(formData: FormData) {
     try {
@@ -33,6 +34,32 @@ export async function createGameServer(formData: FormData) {
             return { error: "Não autorizado. Por favor, faça login." };
         }
 
+        const domainId = formData.get("domainId") as string || null;
+        const subdomain = formData.get("subdomain") as string || null;
+
+        // Check for domain uniqueness if specified
+        if (domainId) {
+            const domain = await db.userDomain.findUnique({
+                where: { id: domainId }
+            });
+
+            if (domain) {
+                const fullDomain = subdomain ? `${subdomain}.${domain.name}` : domain.name;
+                const existing = await db.gameServer.findFirst({
+                    where: {
+                        OR: [
+                            { customHost: fullDomain },
+                            { AND: [{ domainId }, { subdomain }] }
+                        ]
+                    }
+                });
+
+                if (existing) {
+                    return { error: `O domínio ${fullDomain} já está sendo usado por outro servidor.` };
+                }
+            }
+        }
+
         // Generate unique container name
         const containerName = `gsh-${gameSlug}-${Date.now()}`;
 
@@ -43,7 +70,9 @@ export async function createGameServer(formData: FormData) {
                 gameId: game.id,
                 userId,
                 port,
-                customHost,
+                customHost: null, // We'll set this if domain is provided
+                domainId,
+                subdomain,
                 ramMb,
                 cpuCores,
                 containerName,
@@ -53,6 +82,18 @@ export async function createGameServer(formData: FormData) {
                 status: autoStart ? "starting" : "stopped",
             },
         });
+
+        // If we have a domain, update customHost for display
+        if (domainId) {
+            const domain = await db.userDomain.findUnique({ where: { id: domainId } });
+            if (domain) {
+                const fullDomain = subdomain ? `${subdomain}.${domain.name}` : domain.name;
+                await db.gameServer.update({
+                    where: { id: server.id },
+                    data: { customHost: fullDomain }
+                });
+            }
+        }
 
         revalidatePath("/servers");
 
@@ -149,10 +190,11 @@ export async function startGameServer(serverId: string) {
         }
 
         // Create and start container
+        // If we have a custom host (proxied), don't bind ports on the host machine to avoid conflicts with the Gateway
         const containerId = await createAndStartContainer({
             name: server.containerName,
             image: server.game.dockerImage,
-            port: server.port,
+            port: server.customHost ? 0 : server.port,
             internalPort,
             protocol,
             ramMb: server.ramMb,
@@ -176,6 +218,10 @@ export async function startGameServer(serverId: string) {
         } catch (e) {
             // Safe to ignore revalidation errors in background
         }
+
+        // Sync proxy for all games (some might be UDP/TCP proxied)
+        await syncProxy();
+
         return { success: true };
     } catch (error) {
         console.error("Error starting server:", error);
@@ -231,6 +277,10 @@ export async function stopGameServer(serverId: string) {
 
         revalidatePath("/servers");
         revalidatePath(`/servers/${serverId}`);
+
+        // Sync proxy
+        await syncProxy();
+
         return { success: true };
     } catch (error) {
         console.error("Error stopping server:", error);
@@ -362,6 +412,8 @@ export async function executeServerCommand(serverId: string, command: string) {
 
             const { sendRconCommand } = await import("@/lib/rcon-client");
             // Try to connect to 127.0.0.1 on the host-bound port
+            const export_port = server.customHost ? 0 : server.port; // Should check internal port if proxied, but command exec usually happens via host port or internal docker network.
+            // RCON usually needs the mapped host port if connecting from node process.
             const output = await sendRconCommand("127.0.0.1", server.port, rconPassword, command);
             return { success: true, output };
         } else {
@@ -388,9 +440,19 @@ export async function getServerStats(serverId: string) {
         }
 
         const { getContainerStats } = await import("@/lib/docker");
-        const stats = await getContainerStats(server.containerId);
-
-        return stats;
+        try {
+            const stats = await getContainerStats(server.containerId);
+            return stats;
+        } catch (dockerError: any) {
+            // If container is gone (404), sync DB
+            if (dockerError.statusCode === 404) {
+                await db.gameServer.update({
+                    where: { id: serverId },
+                    data: { status: 'stopped', containerId: null }
+                });
+            }
+            return null;
+        }
     } catch (error) {
         console.error("Error getting server stats:", error);
         return null;
@@ -408,9 +470,18 @@ export async function getServerLogs(serverId: string, tail: number = 100) {
         }
 
         const { getContainerLogs } = await import("@/lib/docker");
-        const logs = await getContainerLogs(server.containerId, tail);
-
-        return logs;
+        try {
+            const logs = await getContainerLogs(server.containerId, tail);
+            return logs;
+        } catch (dockerError: any) {
+            if (dockerError.statusCode === 404) {
+                await db.gameServer.update({
+                    where: { id: serverId },
+                    data: { status: 'stopped', containerId: null }
+                });
+            }
+            return "";
+        }
     } catch (error) {
         console.error("Error getting server logs:", error);
         return "";

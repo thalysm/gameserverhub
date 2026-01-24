@@ -12,7 +12,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Check, AlertCircle, Loader2 } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
     getMinecraftReleaseVersions,
@@ -22,6 +22,9 @@ import {
 import { createGameServer } from "@/actions/server-actions";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { DomainSelector } from "@/components/domain-selector";
+import { SystemCheck } from "@/components/system-check";
+import { checkDockerStatus } from "@/actions/system-actions";
 
 const ramOptions = [
     { value: 1024, label: "1 GB" },
@@ -49,7 +52,8 @@ export function MinecraftServerForm() {
     // Basic settings
     const [serverName, setServerName] = useState("");
     const [port, setPort] = useState("25565");
-    const [customHost, setCustomHost] = useState("");
+    const [domainId, setDomainId] = useState("");
+    const [subdomain, setSubdomain] = useState("");
 
     // Resources
     const [selectedRam, setSelectedRam] = useState(2048);
@@ -65,6 +69,8 @@ export function MinecraftServerForm() {
     const [onlineMode, setOnlineMode] = useState(true);
     const [autoStart, setAutoStart] = useState(true);
     const [autoRestart, setAutoRestart] = useState(true);
+    const [dockerOnline, setDockerOnline] = useState<boolean | null>(null);
+    const [dnsValid, setDnsValid] = useState<boolean | undefined>(undefined);
 
     useEffect(() => {
         async function loadVersions() {
@@ -96,11 +102,28 @@ export function MinecraftServerForm() {
     const handleCreate = async () => {
         setIsCreating(true);
 
+        // Check docker status again before creating
+        const dockerStatus = await checkDockerStatus();
+        if (!dockerStatus.online) {
+            toast.error("O Docker não está rodando. Por favor, inicie o Docker para criar o servidor.");
+            setIsCreating(false);
+            return;
+        }
+
+        // Warning for DNS
+        if (domainId && dnsValid === false) {
+            if (!confirm("O domínio selecionado não parece estar apontando para este servidor. Deseja continuar assim mesmo?")) {
+                setIsCreating(false);
+                return;
+            }
+        }
+
         const formData = new FormData();
         formData.append("name", serverName);
         formData.append("gameSlug", "minecraft");
         formData.append("port", port);
-        formData.append("customHost", customHost);
+        formData.append("domainId", domainId);
+        formData.append("subdomain", subdomain);
         formData.append("ramMb", selectedRam.toString());
         formData.append("cpuCores", selectedCpu.toString());
         formData.append("autoStart", autoStart.toString());
@@ -189,9 +212,9 @@ export function MinecraftServerForm() {
                             )}
                         </div>
 
-                        <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="grid gap-4 sm:grid-cols-1">
                             <div>
-                                <Label htmlFor="port">Port</Label>
+                                <Label htmlFor="port">Port (Default: 25565)</Label>
                                 <Input
                                     id="port"
                                     type="number"
@@ -200,16 +223,19 @@ export function MinecraftServerForm() {
                                     className="mt-1.5 border-white/5 bg-white/[0.02] focus:border-primary/30"
                                 />
                             </div>
-                            <div>
-                                <Label htmlFor="customHost">Custom Host (optional)</Label>
-                                <Input
-                                    id="customHost"
-                                    placeholder="Ex: mc.myserver.com"
-                                    value={customHost}
-                                    onChange={(e) => setCustomHost(e.target.value)}
-                                    className="mt-1.5 border-white/5 bg-white/[0.02] focus:border-primary/30"
-                                />
-                            </div>
+                        </div>
+
+                        <div className="py-2">
+                            <SystemCheck />
+                        </div>
+
+                        <div className="py-2">
+                            <Label className="mb-2 block">Choose Domain</Label>
+                            <DomainSelector onDomainChange={(id, sub, isValid) => {
+                                setDomainId(id);
+                                setSubdomain(sub);
+                                setDnsValid(isValid);
+                            }} />
                         </div>
 
                         <Button
@@ -283,12 +309,6 @@ export function MinecraftServerForm() {
                                     </button>
                                 ))}
                             </div>
-                            {selectedRam === 2048 && (
-                                <p className="mt-2 flex items-center gap-1 text-xs text-primary">
-                                    <Check className="h-3 w-3" />
-                                    Recommended configuration
-                                </p>
-                            )}
                         </div>
 
                         <div>
@@ -445,55 +465,20 @@ export function MinecraftServerForm() {
 
                         <div className="space-y-4 rounded-lg border border-white/5 bg-white/[0.01] p-4">
                             <div className="flex items-center justify-between">
-                                <div>
-                                    <Label htmlFor="pvp">PvP</Label>
-                                    <p className="text-xs text-muted-foreground">
-                                        Enable player vs player combat
-                                    </p>
-                                </div>
+                                <Label htmlFor="pvp">PvP</Label>
                                 <Switch id="pvp" checked={pvp} onCheckedChange={setPvp} />
                             </div>
-
                             <div className="flex items-center justify-between">
-                                <div>
-                                    <Label htmlFor="onlineMode">Online Mode</Label>
-                                    <p className="text-xs text-muted-foreground">
-                                        Verify players through Mojang authentication
-                                    </p>
-                                </div>
-                                <Switch
-                                    id="onlineMode"
-                                    checked={onlineMode}
-                                    onCheckedChange={setOnlineMode}
-                                />
+                                <Label htmlFor="onlineMode">Online Mode</Label>
+                                <Switch id="onlineMode" checked={onlineMode} onCheckedChange={setOnlineMode} />
                             </div>
-
                             <div className="flex items-center justify-between">
-                                <div>
-                                    <Label htmlFor="autoStart">Auto Start</Label>
-                                    <p className="text-xs text-muted-foreground">
-                                        Start server automatically after creation
-                                    </p>
-                                </div>
-                                <Switch
-                                    id="autoStart"
-                                    checked={autoStart}
-                                    onCheckedChange={setAutoStart}
-                                />
+                                <Label htmlFor="autoStart">Auto Start</Label>
+                                <Switch id="autoStart" checked={autoStart} onCheckedChange={setAutoStart} />
                             </div>
-
                             <div className="flex items-center justify-between">
-                                <div>
-                                    <Label htmlFor="autoRestart">Auto Restart on Crash</Label>
-                                    <p className="text-xs text-muted-foreground">
-                                        Automatically restart if server crashes
-                                    </p>
-                                </div>
-                                <Switch
-                                    id="autoRestart"
-                                    checked={autoRestart}
-                                    onCheckedChange={setAutoRestart}
-                                />
+                                <Label htmlFor="autoRestart">Auto Restart</Label>
+                                <Switch id="autoRestart" checked={autoRestart} onCheckedChange={setAutoRestart} />
                             </div>
                         </div>
 

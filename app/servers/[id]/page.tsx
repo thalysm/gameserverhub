@@ -140,7 +140,7 @@ function ServerDetailsContent({ serverId }: { serverId: string }) {
     };
 
     const copyHost = () => {
-        const host = server?.customHost || `localhost:${server?.port}`;
+        const host = server?.customHost ? `${server.customHost}:${server.port}` : `localhost:${server?.port}`;
         navigator.clipboard.writeText(host);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
@@ -263,13 +263,20 @@ function ServerDetailsContent({ serverId }: { serverId: string }) {
                             <Globe className="h-5 w-5 text-primary" />
                         </div>
                         <div className="flex-1">
-                            <p className="text-xs text-muted-foreground">Server Address</p>
+                            <div className="flex items-center gap-2">
+                                <p className="text-xs text-muted-foreground">Server Address</p>
+                                {server.customHost && (
+                                    <span className="flex items-center rounded-full bg-primary/20 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider text-primary">
+                                        PROXIED
+                                    </span>
+                                )}
+                            </div>
                             <button
                                 onClick={copyHost}
                                 className="flex items-center gap-1.5 text-sm font-medium text-foreground hover:text-primary"
                             >
                                 <code className="font-mono">
-                                    {server.customHost || `localhost:${server.port}`}
+                                    {server.customHost ? `${server.customHost}:${server.port}` : `localhost:${server.port}`}
                                 </code>
                                 {copied ? (
                                     <Check className="h-3.5 w-3.5 text-green-500" />
@@ -277,6 +284,11 @@ function ServerDetailsContent({ serverId }: { serverId: string }) {
                                     <Copy className="h-3.5 w-3.5" />
                                 )}
                             </button>
+                            {server.customHost && (
+                                <p className="mt-1 text-[10px] text-muted-foreground italic">
+                                    * Domínios personalizados usam a porta padrão ({server.port}) via GSH Proxy.
+                                </p>
+                            )}
                         </div>
                     </div>
 

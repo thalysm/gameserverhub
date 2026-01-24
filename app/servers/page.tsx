@@ -60,7 +60,7 @@ function ServerCard({ server, onRefresh }: { server: GameServer; onRefresh: () =
   const [isLoading, setIsLoading] = useState(false);
 
   const copyHost = () => {
-    const host = server.customHost || `localhost:${server.port}`;
+    const host = server.customHost ? `${server.customHost}:${server.port}` : `localhost:${server.port}`;
     navigator.clipboard.writeText(host);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -145,7 +145,7 @@ function ServerCard({ server, onRefresh }: { server: GameServer; onRefresh: () =
             className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             <code className="font-mono">
-              {server.customHost || `localhost:${server.port}`}
+              {server.customHost ? `${server.customHost}:${server.port}` : `localhost:${server.port}`}
             </code>
             {copied ? (
               <Check className="h-3.5 w-3.5 text-green-500" />
