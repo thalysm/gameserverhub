@@ -9,6 +9,7 @@ import { MinecraftServerForm } from "@/components/minecraft-server-form";
 import { CS2ServerForm } from "@/components/cs2-server-form";
 import { TerrariaServerForm } from "@/components/terraria-server-form";
 import { HytaleServerForm } from "@/components/hytale-server-form";
+import { ValheimServerForm } from "@/components/valheim-server-form";
 import { getGameBySlug } from "@/lib/games-data";
 
 function CreateServerContent({ slug, game }: { slug: string, game: any }) {
@@ -72,7 +73,8 @@ function CreateServerContent({ slug, game }: { slug: string, game: any }) {
           {slug === "cs2" && <CS2ServerForm />}
           {slug === "terraria" && <TerrariaServerForm />}
           {slug === "hytale" && <HytaleServerForm />}
-          {slug !== "minecraft" && slug !== "cs2" && slug !== "terraria" && slug !== "hytale" && (
+          {slug === "valheim" && <ValheimServerForm game={game} />}
+          {slug !== "minecraft" && slug !== "cs2" && slug !== "terraria" && slug !== "hytale" && slug !== "valheim" && (
             <div className="glass rounded-xl p-6 text-center">
               <p className="text-muted-foreground">
                 Server creation for {game.name} is coming soon!

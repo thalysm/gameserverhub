@@ -324,6 +324,101 @@ export function FileManager({ serverId, isRunning, gameSlug }: FileManagerProps)
                 </div>
             )}
 
+            {/* Valheim File Browser - Only for Valheim */}
+            {gameSlug === "valheim" && (
+                <div className="glass rounded-xl p-6 border border-primary/20 bg-primary/5">
+                    <div className="flex flex-col gap-4">
+                        <div className="flex items-center gap-4">
+                            <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center">
+                                <HardDrive className="h-6 w-6 text-primary" />
+                            </div>
+                            <div className="flex-1">
+                                <h4 className="text-base font-bold text-foreground">Valheim Server Files</h4>
+                                <p className="text-xs text-muted-foreground">
+                                    Browse your world saves, configuration files, and server logs
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div className="rounded-lg border border-white/10 bg-white/[0.02] p-4">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <Folder className="h-4 w-4 text-primary" />
+                                    <p className="text-sm font-semibold text-foreground">World Saves</p>
+                                </div>
+                                <p className="text-xs text-muted-foreground mb-3">
+                                    World data in <code className="text-[10px] px-1 py-0.5 bg-white/10 rounded">.db</code> and <code className="text-[10px] px-1 py-0.5 bg-white/10 rounded">.fwl</code> format
+                                </p>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={async () => {
+                                        const target = "/config/worlds_local";
+                                        setLoading(true);
+                                        await ensureServerDirectory(serverId, target);
+                                        setCurrentPath(target);
+                                        loadFiles(target);
+                                    }}
+                                    disabled={!isRunning || loading}
+                                    className="w-full h-8 text-xs bg-white/5 border-white/10 hover:bg-white/10"
+                                >
+                                    Browse Worlds
+                                </Button>
+                            </div>
+
+                            <div className="rounded-lg border border-white/10 bg-white/[0.02] p-4">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <FileText className="h-4 w-4 text-primary" />
+                                    <p className="text-sm font-semibold text-foreground">Config Files</p>
+                                </div>
+                                <p className="text-xs text-muted-foreground mb-3">
+                                    Server config and admin lists
+                                </p>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={async () => {
+                                        const target = "/config";
+                                        setLoading(true);
+                                        setCurrentPath(target);
+                                        loadFiles(target);
+                                    }}
+                                    disabled={!isRunning || loading}
+                                    className="w-full h-8 text-xs bg-white/5 border-white/10 hover:bg-white/10"
+                                >
+                                    Browse Config
+                                </Button>
+                            </div>
+
+                            <div className="rounded-lg border border-white/10 bg-white/[0.02] p-4">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <Archive className="h-4 w-4 text-primary" />
+                                    <p className="text-sm font-semibold text-foreground">Backups</p>
+                                </div>
+                                <p className="text-xs text-muted-foreground mb-3">
+                                    Automatic world backups
+                                </p>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={async () => {
+                                        const target = "/config/backups";
+                                        setLoading(true);
+                                        await ensureServerDirectory(serverId, target);
+                                        setCurrentPath(target);
+                                        loadFiles(target);
+                                    }}
+                                    disabled={!isRunning || loading}
+                                    className="w-full h-8 text-xs bg-white/5 border-white/10 hover:bg-white/10"
+                                >
+                                    Browse Backups
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Main File Manager */}
             <div className="glass rounded-xl overflow-hidden flex flex-col h-[600px] border border-white/5">
                 {/* Toolbar */}

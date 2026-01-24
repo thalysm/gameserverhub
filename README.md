@@ -37,18 +37,19 @@ Currently, GSH officially supports:
 - ✅ **Counter-Strike 2** (using the `joedwards32/cs2` image)
 - ✅ **Terraria** (using the `beardedio/terraria` image)
 - ✅ **Hytale** (using the `indifferentbroccoli/hytale-server-docker` image)
+- ✅ **Valheim** (using the `lloesche/valheim-server` image)
 
 ### 🔜 Upcoming Games (In Development)
 We are working to add support for:
 - [ ] Assetto Corsa
 - [ ] Rust
-- [ ] Valheim
 - [ ] Garry's Mod
 - [ ] Ark: Survival Evolved
 - [ ] Palworld
 - [ ] Factorio
 - [ ] Project Zomboid
 - [ ] Don't Starve Together (DST)
+
 
 ---
 

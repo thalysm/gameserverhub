@@ -227,6 +227,13 @@ export async function startGameServer(serverId: string) {
             internalPort = 5520;
             protocol = 'udp';
             dataDir = "/home/hytale/server-files";
+        } else if (gameSlug === 'valheim') {
+            const { buildValheimEnv } = await import("@/lib/valheim-utils");
+            const valheimEnv = buildValheimEnv(config);
+            env = { ...env, ...valheimEnv };
+            internalPort = 2456;
+            protocol = 'udp';
+            dataDir = "/config";
         }
 
         let entrypoint: string[] | undefined;
@@ -257,6 +264,18 @@ export async function startGameServer(serverId: string) {
             tty = true;
         }
 
+        // Configure extra ports for Valheim
+        let extraPorts: { port: number; internalPort: number; protocol: 'tcp' | 'udp' | 'both' }[] | undefined;
+        if (gameSlug === 'valheim') {
+            extraPorts = [
+                { port: currentPort + 1, internalPort: 2457, protocol: 'udp' }, // Steam matchmaking
+            ];
+            // Add crossplay port if enabled
+            if (config.crossplay === true) {
+                extraPorts.push({ port: currentPort + 2, internalPort: 2458, protocol: 'udp' });
+            }
+        }
+
         // Create and start container
         const containerId = await createAndStartContainer({
             name: server.containerName,
@@ -269,6 +288,7 @@ export async function startGameServer(serverId: string) {
             env,
             dataDir,
             tty,
+            extraPorts,
             // entrypoint, // Removed custom entrypoint to let image handle init
         });
 

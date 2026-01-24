@@ -142,7 +142,8 @@ export async function listServerFiles(serverId: string, path?: string) {
         const rootPath = server.game.slug === 'cs2' ? "/home/steam/cs2-dedicated"
             : server.game.slug === 'terraria' ? "/config"
                 : server.game.slug === 'hytale' ? "/home/hytale/server-files"
-                    : "/data";
+                    : server.game.slug === 'valheim' ? "/config"
+                        : "/data";
         const finalPath = path || rootPath;
 
         const { listContainerFiles } = await import("@/lib/docker-files");

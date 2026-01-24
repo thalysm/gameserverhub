@@ -42,6 +42,7 @@ import { ServerSettings } from "@/components/server-settings";
 import { CS2Settings } from "@/components/cs2-settings";
 import { TerrariaSettings } from "@/components/terraria-settings";
 import { HytaleSettings } from "@/components/hytale-settings";
+import { ValheimSettings } from "@/components/valheim-settings";
 import { FileManager } from "@/components/file-manager";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -408,6 +409,8 @@ function ServerDetailsContent({ serverId }: { serverId: string }) {
                             isRunning={isRunning}
                             gameConfig={server.gameConfig}
                         />
+                    ) : server.game.slug === 'valheim' ? (
+                        <ValheimSettings server={server} />
                     ) : (
                         <ServerSettings
                             serverId={serverId}
