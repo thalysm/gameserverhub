@@ -196,6 +196,36 @@ export async function startGameServer(serverId: string) {
             internalPort = 27015;
             protocol = 'both'; // CS2 uses UDP for game and TCP for RCON usually, but image handles it
             dataDir = "/home/steam/cs2-dedicated";
+        } else if (gameSlug === 'terraria') {
+            const { buildTerrariaEnv } = await import("@/lib/terraria-utils");
+            const terrariaEnv = buildTerrariaEnv(config);
+            env = { ...env, ...terrariaEnv };
+            internalPort = 7777;
+            protocol = 'tcp';
+            dataDir = "/config";
+
+            // Prepare serverconfig.txt with autocreate settings
+            try {
+                const { prepareTerrariaVolume } = await import("@/lib/terraria-world-creator");
+                await prepareTerrariaVolume(
+                    `${server.containerName}-data`,
+                    config.worldName,
+                    config.worldSize,
+                    config.difficulty,
+                    config.maxPlayers,
+                    config.password,
+                    config.worldSeed,
+                    config.motd
+                );
+            } catch (error) {
+                console.error('Failed to prepare Terraria serverconfig:', error);
+            }
+        }
+
+        // Enable TTY for Terraria (required by beardedio/terraria)
+        let tty = false;
+        if (gameSlug === 'terraria') {
+            tty = true;
         }
 
         // Create and start container
@@ -209,6 +239,7 @@ export async function startGameServer(serverId: string) {
             cpuCores: server.cpuCores,
             env,
             dataDir,
+            tty,
         });
 
         // Open port in firewall
@@ -447,6 +478,21 @@ export async function updateGameServerConfig(serverId: string, configUpdates: an
                 gameConfig: JSON.stringify(updatedConfig),
             },
         });
+
+        // If it's a Terraria server, we need to update the serverconfig.txt file
+        const game = await db.game.findUnique({
+            where: { id: server.gameId },
+        });
+
+        if (game?.slug === 'terraria') {
+            try {
+                const { updateTerrariaConfig } = await import("@/lib/terraria-world-creator");
+                await updateTerrariaConfig(`${server.containerName}-data`, updatedConfig);
+            } catch (error) {
+                console.error('Failed to update Terraria config file:', error);
+                // Non-fatal, but user should know
+            }
+        }
 
         revalidatePath(`/servers/${serverId}`);
         return { success: true };

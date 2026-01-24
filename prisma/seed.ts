@@ -93,7 +93,7 @@ async function main() {
             recommendedRam: 1024,
             supportsTcp: true,
             supportsUdp: false,
-            dockerImage: 'ryanspice/terraria',
+            dockerImage: 'ghcr.io/beardedio/terraria',
         },
         {
             slug: 'palworld',

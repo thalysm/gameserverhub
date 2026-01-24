@@ -18,6 +18,7 @@ export interface ContainerConfig {
     env: Record<string, string>;
     dataDir: string;
     tty?: boolean;
+    cmd?: string[];
     extraPorts?: { port: number; internalPort: number; protocol: 'tcp' | 'udp' | 'both' }[];
 }
 
@@ -94,6 +95,7 @@ export async function createAndStartContainer(config: ContainerConfig): Promise<
             name: config.name,
             Image: config.image,
             Env: Object.entries(config.env).map(([key, value]) => `${key}=${value}`),
+            Cmd: config.cmd,
             HostConfig: {
                 PortBindings: portBindings,
                 Memory: config.ramMb * 1024 * 1024,

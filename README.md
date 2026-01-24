@@ -12,9 +12,15 @@ The goal is to provide an intuitive interface where anyone can spin up, configur
 
 - 🚀 **One-Click Deploy**: Spin up servers in seconds using Docker.
 - 📂 **Inline File Manager**: View and edit configuration files (`.cfg`, `.properties`, `.json`, etc.) directly in the browser.
+- 🌐 **Advanced Networking**:
+  - **UPnP Support**: Automatic port forwarding for supported routers.
+  - **Firewall Management**: Automatic Windows Firewall rule management for server ports.
+  - **Custom Domains**: Support for linking custom domains to servers.
 - 🛠️ **Advanced Admin Panel**:
   - Command execution via RCON.
+  - Interactive Terminal with real-time logs.
   - Dynamic map switching (CS2 Workshop support).
+  - World Management (Upload/Download worlds).
   - Persistent settings via Database.
 - 📈 **Monitoring**: Server status, resource usage, and real-time logs.
 
@@ -25,10 +31,10 @@ The goal is to provide an intuitive interface where anyone can spin up, configur
 Currently, GSH officially supports:
 - ✅ **Minecraft Java Edition** (using the `itzg/minecraft-server` image)
 - ✅ **Counter-Strike 2** (using the `joedwards32/cs2` image)
+- ✅ **Terraria** (using the `beardedio/terraria` image)
 
 ### 🔜 Upcoming Games (In Development)
 We are working to add support for:
-- [ ] Terraria
 - [ ] Assetto Corsa
 - [ ] Rust
 - [ ] Valheim
@@ -44,7 +50,6 @@ We are working to add support for:
 ## 🗺️ System Roadmap (TODO)
 
 - [ ] **Internationalization (i18n)**: Full support for English (EN) and Portuguese (PT-BR).
-- [ ] **Integrated Reverse Proxy**: Facilitate access to servers via custom domains/links.
 - [ ] **Cloud Backup System**: Automated backups to S3 or Google Drive.
 
 ---

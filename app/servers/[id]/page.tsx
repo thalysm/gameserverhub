@@ -40,6 +40,7 @@ import { ServerTerminal } from "@/components/server-terminal";
 import { ServerStats } from "@/components/server-stats";
 import { ServerSettings } from "@/components/server-settings";
 import { CS2Settings } from "@/components/cs2-settings";
+import { TerrariaSettings } from "@/components/terraria-settings";
 import { FileManager } from "@/components/file-manager";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -386,6 +387,12 @@ function ServerDetailsContent({ serverId }: { serverId: string }) {
                 <TabsContent value="settings">
                     {server.game.slug === 'cs2' ? (
                         <CS2Settings
+                            serverId={serverId}
+                            isRunning={isRunning}
+                            gameConfig={server.gameConfig}
+                        />
+                    ) : server.game.slug === 'terraria' ? (
+                        <TerrariaSettings
                             serverId={serverId}
                             isRunning={isRunning}
                             gameConfig={server.gameConfig}

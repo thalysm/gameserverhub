@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Terminal as TerminalIcon, Send, Trash2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
+
 import { executeServerCommand, getServerLogs } from "@/actions/server-actions";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -46,8 +46,8 @@ export function ServerTerminal({ serverId, isRunning }: ServerTerminalProps) {
     }, [loadLogs, isRunning]);
 
     useEffect(() => {
-        if (bottomRef.current) {
-            bottomRef.current.scrollIntoView({ behavior: "smooth" });
+        if (bottomRef.current?.parentElement) {
+            bottomRef.current.parentElement.scrollTop = bottomRef.current.parentElement.scrollHeight;
         }
     }, [logs]);
 
@@ -114,34 +114,32 @@ export function ServerTerminal({ serverId, isRunning }: ServerTerminalProps) {
                 </div>
             </div>
 
-            <ScrollArea className="flex-1 bg-black/20 p-4">
-                <div className="space-y-1.5 font-mono text-[11px] sm:text-xs">
-                    {logs.length === 0 ? (
-                        <p className="text-muted-foreground italic">
-                            {isRunning ? "Waiting for logs..." : "Start the server to see real-time logs"}
-                        </p>
-                    ) : (
-                        logs.map((log, index) => (
-                            <div
-                                key={index}
-                                className={cn(
-                                    "break-all",
-                                    log.startsWith(">")
-                                        ? "text-primary font-bold mt-2"
-                                        : log.toLowerCase().includes("error") || log.toLowerCase().includes("exception")
-                                            ? "text-red-400 bg-red-400/5 px-1 rounded"
-                                            : log.toLowerCase().includes("warn")
-                                                ? "text-amber-400"
-                                                : "text-foreground/70"
-                                )}
-                            >
-                                {log}
-                            </div>
-                        ))
-                    )}
-                    <div ref={bottomRef} />
-                </div>
-            </ScrollArea>
+            <div className="flex-1 min-h-0 overflow-y-auto bg-black/20 p-4 font-mono text-[11px] sm:text-xs">
+                {logs.length === 0 ? (
+                    <p className="text-muted-foreground italic">
+                        {isRunning ? "Waiting for logs..." : "Start the server to see real-time logs"}
+                    </p>
+                ) : (
+                    logs.map((log, index) => (
+                        <div
+                            key={index}
+                            className={cn(
+                                "break-all",
+                                log.startsWith(">")
+                                    ? "text-primary font-bold mt-2"
+                                    : log.toLowerCase().includes("error") || log.toLowerCase().includes("exception")
+                                        ? "text-red-400 bg-red-400/5 px-1 rounded"
+                                        : log.toLowerCase().includes("warn")
+                                            ? "text-amber-400"
+                                            : "text-foreground/70"
+                            )}
+                        >
+                            {log}
+                        </div>
+                    ))
+                )}
+                <div ref={bottomRef} />
+            </div>
 
             <form
                 onSubmit={handleExecuteCommand}

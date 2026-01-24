@@ -107,7 +107,9 @@ export async function listServerFiles(serverId: string, path?: string) {
             return { error: "Server not found or not running" };
         }
 
-        const rootPath = server.game.slug === 'cs2' ? "/home/steam/cs2-dedicated" : "/data";
+        const rootPath = server.game.slug === 'cs2' ? "/home/steam/cs2-dedicated"
+            : server.game.slug === 'terraria' ? "/config"
+                : "/data";
         const finalPath = path || rootPath;
 
         const { listContainerFiles } = await import("@/lib/docker-files");

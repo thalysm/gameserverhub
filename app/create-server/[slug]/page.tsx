@@ -10,6 +10,7 @@ import { AppLayout } from "@/components/app-layout";
 import { getGameCover } from "@/lib/games-data";
 import { MinecraftServerForm } from "@/components/minecraft-server-form";
 import { CS2ServerForm } from "@/components/cs2-server-form";
+import { TerrariaServerForm } from "@/components/terraria-server-form";
 import { getGameBySlug } from "@/lib/games-data";
 
 function CreateServerContent({ slug }: { slug: string }) {
@@ -71,7 +72,8 @@ function CreateServerContent({ slug }: { slug: string }) {
         <div className="lg:col-span-2">
           {slug === "minecraft" && <MinecraftServerForm />}
           {slug === "cs2" && <CS2ServerForm />}
-          {slug !== "minecraft" && slug !== "cs2" && (
+          {slug === "terraria" && <TerrariaServerForm />}
+          {slug !== "minecraft" && slug !== "cs2" && slug !== "terraria" && (
             <div className="glass rounded-xl p-6 text-center">
               <p className="text-muted-foreground">
                 Server creation for {game.name} is coming soon!
