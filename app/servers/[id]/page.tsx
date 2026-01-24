@@ -55,6 +55,7 @@ type GameServer = {
     containerName: string;
     containerId: string | null;
     gameConfig: string;
+    isRouterPortOpen?: boolean;
     createdAt: Date;
     game: {
         slug: string;
@@ -266,8 +267,8 @@ function ServerDetailsContent({ serverId }: { serverId: string }) {
                             <div className="flex items-center gap-2">
                                 <p className="text-xs text-muted-foreground">Server Address</p>
                                 {server.customHost && (
-                                    <span className="flex items-center rounded-full bg-primary/20 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider text-primary">
-                                        PROXIED
+                                    <span className="flex items-center rounded-full bg-green-500/20 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider text-green-400">
+                                        LINKED
                                     </span>
                                 )}
                             </div>
@@ -275,18 +276,32 @@ function ServerDetailsContent({ serverId }: { serverId: string }) {
                                 onClick={copyHost}
                                 className="flex items-center gap-1.5 text-sm font-medium text-foreground hover:text-primary"
                             >
-                                <code className="font-mono">
-                                    {server.customHost ? `${server.customHost}:${server.port}` : `localhost:${server.port}`}
+                                <code className="font-mono text-base bg-white/5 px-2 py-1 rounded">
+                                    {server.customHost ? `${server.customHost}:${server.port}` : `${window.location.hostname}:${server.port}`}
                                 </code>
                                 {copied ? (
-                                    <Check className="h-3.5 w-3.5 text-green-500" />
+                                    <Check className="h-4 w-4 text-green-500" />
                                 ) : (
-                                    <Copy className="h-3.5 w-3.5" />
+                                    <Copy className="h-4 w-4" />
                                 )}
                             </button>
+
+                            {isRunning && (
+                                <div
+                                    className={cn(
+                                        "mt-2 flex w-fit items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-tight",
+                                        server.isRouterPortOpen
+                                            ? "bg-green-500/10 border-green-500/20 text-green-500"
+                                            : "bg-red-500/10 border-red-500/20 text-red-500"
+                                    )}
+                                >
+                                    <Globe className="h-3 w-3" />
+                                    {server.isRouterPortOpen ? "Porta Aberta no Roteador" : "Porta Fechada no Roteador"}
+                                </div>
+                            )}
                             {server.customHost && (
                                 <p className="mt-1 text-[10px] text-muted-foreground italic">
-                                    * Domínios personalizados usam a porta padrão ({server.port}) via GSH Proxy.
+                                    * Utilize este endereço para se conectar diretamente ao servidor.
                                 </p>
                             )}
                         </div>

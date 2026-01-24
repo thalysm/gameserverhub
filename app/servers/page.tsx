@@ -18,6 +18,7 @@ import {
   Trash2,
   Activity,
   Clock,
+  Globe,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -46,6 +47,7 @@ type GameServer = {
   cpuCores: number;
   status: string;
   containerName: string;
+  isRouterPortOpen?: boolean;
   createdAt: Date;
   game: {
     id: string;
@@ -140,19 +142,36 @@ function ServerCard({ server, onRefresh }: { server: GameServer; onRefresh: () =
           </div>
           <p className="text-sm text-muted-foreground">{server.game.name}</p>
 
-          <button
-            onClick={copyHost}
-            className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <code className="font-mono">
-              {server.customHost ? `${server.customHost}:${server.port}` : `localhost:${server.port}`}
-            </code>
-            {copied ? (
-              <Check className="h-3.5 w-3.5 text-green-500" />
-            ) : (
-              <Copy className="h-3.5 w-3.5" />
+          <div className="mt-2 flex items-center gap-3">
+            <button
+              onClick={copyHost}
+              className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <code className="font-mono">
+                {server.customHost ? `${server.customHost}:${server.port}` : `localhost:${server.port}`}
+              </code>
+              {copied ? (
+                <Check className="h-3.5 w-3.5 text-green-500" />
+              ) : (
+                <Copy className="h-3.5 w-3.5" />
+              )}
+            </button>
+
+            {server.status === "running" && (
+              <div
+                className={cn(
+                  "flex items-center gap-1 px-1.5 py-0.5 rounded-full border text-[10px] font-bold uppercase tracking-tight",
+                  server.isRouterPortOpen
+                    ? "bg-green-500/10 border-green-500/20 text-green-500"
+                    : "bg-red-500/10 border-red-500/20 text-red-500"
+                )}
+                title={server.isRouterPortOpen ? "Porta aberta no Roteador" : "Porta FECHADA no Roteador"}
+              >
+                <Globe className="h-2.5 w-2.5" />
+                {server.isRouterPortOpen ? "Modem OK" : "Modem Off"}
+              </div>
             )}
-          </button>
+          </div>
         </div>
 
         <div className="hidden items-center gap-6 xl:flex">

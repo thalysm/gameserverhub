@@ -5,12 +5,14 @@ import { revalidatePath } from "next/cache";
 import { createAndStartContainer, stopContainer, removeContainer, fixVolumePermissions, writeToVolume } from "@/lib/docker";
 import { buildServerProperties } from "@/lib/minecraft-utils";
 import { syncProxy } from "@/lib/proxy";
+import { allocatePort, isPortAvailable, getUPNPConfig } from "@/lib/port-manager";
+import { openFirewallPort, closeFirewallPort } from "@/lib/firewall";
+import { openRouterPort, closeRouterPort, getRouterMappings, isPortMappedInList } from "@/lib/upnp";
 
 export async function createGameServer(formData: FormData) {
     try {
         const name = formData.get("name") as string;
         const gameSlug = formData.get("gameSlug") as string;
-        const port = parseInt(formData.get("port") as string);
         const customHost = formData.get("customHost") as string || null;
         const ramMb = parseInt(formData.get("ramMb") as string);
         const cpuCores = parseInt(formData.get("cpuCores") as string);
@@ -27,6 +29,10 @@ export async function createGameServer(formData: FormData) {
             return { error: "Game not found" };
         }
 
+        // Allocate port automatically, preferring the game's default port
+        const protocol = gameSlug === 'cs2' ? 'both' : 'tcp';
+        const port = await allocatePort(game.defaultPort, protocol as any);
+
         // Get user from session
         const { verifySession } = await import("@/lib/session");
         const userId = await verifySession();
@@ -37,7 +43,7 @@ export async function createGameServer(formData: FormData) {
         const domainId = formData.get("domainId") as string || null;
         const subdomain = formData.get("subdomain") as string || null;
 
-        // Check for domain uniqueness if specified
+        // Resolve domain name if specified
         if (domainId) {
             const domain = await db.userDomain.findUnique({
                 where: { id: domainId }
@@ -45,18 +51,6 @@ export async function createGameServer(formData: FormData) {
 
             if (domain) {
                 const fullDomain = subdomain ? `${subdomain}.${domain.name}` : domain.name;
-                const existing = await db.gameServer.findFirst({
-                    where: {
-                        OR: [
-                            { customHost: fullDomain },
-                            { AND: [{ domainId }, { subdomain }] }
-                        ]
-                    }
-                });
-
-                if (existing) {
-                    return { error: `O domínio ${fullDomain} já está sendo usado por outro servidor.` };
-                }
             }
         }
 
@@ -108,8 +102,8 @@ export async function createGameServer(formData: FormData) {
         revalidatePath("/servers");
         return { success: true, serverId: server.id };
     } catch (error) {
-        console.error("Error creating game server:", error);
-        return { error: "Failed to create server" };
+        console.error("CRITICAL ERROR in createGameServer:", error);
+        return { error: `Erro ao criar servidor: ${error instanceof Error ? error.message : "Erro desconhecido"}` };
     }
 }
 
@@ -124,8 +118,23 @@ export async function startGameServer(serverId: string) {
             return { error: "Server not found" };
         }
 
-        // Initial status update done in createGameServer if auto-starting, 
-        // but ensure it's set here for manual starts
+        // Check if the current port is actually available
+        let currentPort = server.port;
+        const portProtocol = server.game.slug === 'cs2' ? 'both' : 'tcp';
+        const isFree = await isPortAvailable(currentPort, portProtocol as any);
+
+        if (!isFree) {
+            console.warn(`Port ${currentPort} is occupied. Re-allocating for server ${server.name}...`);
+            const newPort = await allocatePort(server.game.defaultPort, portProtocol as any);
+            await db.gameServer.update({
+                where: { id: serverId },
+                data: { port: newPort }
+            });
+            currentPort = newPort;
+            // Update the server object locally
+            server.port = newPort;
+        }
+
         if (server.status !== "starting") {
             await db.gameServer.update({
                 where: { id: serverId },
@@ -190,11 +199,10 @@ export async function startGameServer(serverId: string) {
         }
 
         // Create and start container
-        // If we have a custom host (proxied), don't bind ports on the host machine to avoid conflicts with the Gateway
         const containerId = await createAndStartContainer({
             name: server.containerName,
             image: server.game.dockerImage,
-            port: server.customHost ? 0 : server.port,
+            port: currentPort,
             internalPort,
             protocol,
             ramMb: server.ramMb,
@@ -202,6 +210,16 @@ export async function startGameServer(serverId: string) {
             env,
             dataDir,
         });
+
+        // Open port in firewall
+        await openFirewallPort(currentPort, protocol);
+
+        // Try to open port on router via UPnP if enabled
+        const isUpnpEnabled = await getUPNPConfig();
+        if (isUpnpEnabled) {
+            const upnpProto = protocol === 'both' ? 'both' : (protocol.toUpperCase() as 'TCP' | 'UDP');
+            await openRouterPort(currentPort, upnpProto);
+        }
 
         // Update status to running
         await db.gameServer.update({
@@ -230,7 +248,6 @@ export async function startGameServer(serverId: string) {
             data: { status: "error" },
         });
 
-        // Wrap revalidatePath in try-catch to avoid Next.js "during render" errors
         try {
             revalidatePath("/servers");
             revalidatePath(`/servers/${serverId}`);
@@ -261,9 +278,25 @@ export async function stopGameServer(serverId: string) {
         revalidatePath("/servers");
         revalidatePath(`/servers/${serverId}`);
 
+        const fullServer = await db.gameServer.findUnique({
+            where: { id: serverId },
+            include: { game: true }
+        });
+
         // Stop Docker container
         if (server.containerId) {
             await stopContainer(server.containerId);
+        }
+
+        // Close port in firewall
+        const proto = fullServer?.game.slug === 'cs2' ? 'both' : 'tcp';
+        await closeFirewallPort(server.port, proto as any);
+
+        // Try to close port on router via UPnP if enabled
+        const isUpnpEnabled = await getUPNPConfig();
+        if (isUpnpEnabled) {
+            const upnpProto = proto === 'both' ? 'both' : (proto.toUpperCase() as 'TCP' | 'UDP');
+            await closeRouterPort(server.port, upnpProto);
         }
 
         // Update status to stopped
@@ -313,10 +346,24 @@ export async function deleteGameServer(serverId: string) {
         // Stop and remove container if exists
         if (server.containerId) {
             try {
+                // Determine protocol for firewall
+                const fullServer = await db.gameServer.findUnique({
+                    where: { id: serverId },
+                    include: { game: true }
+                });
+                const proto = fullServer?.game.slug === 'cs2' ? 'both' : 'tcp';
+
                 await removeContainer(server.containerId);
+                await closeFirewallPort(server.port, proto as any);
+
+                // Try to close port on router via UPnP if enabled
+                const isUpnpEnabled = await getUPNPConfig();
+                if (isUpnpEnabled) {
+                    const upnpProto = proto === 'both' ? 'both' : (proto.toUpperCase() as 'TCP' | 'UDP');
+                    await closeRouterPort(server.port, upnpProto);
+                }
             } catch (error) {
-                console.error("Error removing container:", error);
-                // Continue with deletion even if container removal fails
+                console.error("Error removing container/firewall rule:", error);
             }
         }
 
@@ -335,16 +382,22 @@ export async function deleteGameServer(serverId: string) {
 
 export async function getGameServers() {
     try {
-        const servers = await db.gameServer.findMany({
-            include: {
-                game: true,
-            },
-            orderBy: {
-                createdAt: "desc",
-            },
-        });
+        const [servers, mappings] = await Promise.all([
+            db.gameServer.findMany({
+                include: {
+                    game: true,
+                },
+                orderBy: {
+                    createdAt: "desc",
+                },
+            }),
+            getRouterMappings()
+        ]);
 
-        return servers;
+        return servers.map(s => ({
+            ...s,
+            isRouterPortOpen: isPortMappedInList(mappings, s.port)
+        }));
     } catch (error) {
         console.error("Error fetching servers:", error);
         return [];
@@ -353,14 +406,22 @@ export async function getGameServers() {
 
 export async function getGameServer(serverId: string) {
     try {
-        const server = await db.gameServer.findUnique({
-            where: { id: serverId },
-            include: {
-                game: true,
-            },
-        });
+        const [server, mappings] = await Promise.all([
+            db.gameServer.findUnique({
+                where: { id: serverId },
+                include: {
+                    game: true,
+                },
+            }),
+            getRouterMappings()
+        ]);
 
-        return server;
+        if (!server) return null;
+
+        return {
+            ...server,
+            isRouterPortOpen: isPortMappedInList(mappings, server.port)
+        };
     } catch (error) {
         console.error("Error fetching server:", error);
         return null;

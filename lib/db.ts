@@ -5,8 +5,7 @@ declare global {
     var prisma: PrismaClient | undefined;
 }
 
-// Force absolute path to avoid confusion between dev and production/scripts
-const dbPath = "file:C:/Users/thaly/Downloads/game-server-hub/prisma/app.db";
+const dbPath = process.env.DATABASE_URL || "file:./prisma/app.db";
 
 export const db = globalThis.prisma || new PrismaClient({
     datasources: {

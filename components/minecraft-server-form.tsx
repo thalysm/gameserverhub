@@ -51,7 +51,6 @@ export function MinecraftServerForm() {
 
     // Basic settings
     const [serverName, setServerName] = useState("");
-    const [port, setPort] = useState("25565");
     const [domainId, setDomainId] = useState("");
     const [subdomain, setSubdomain] = useState("");
 
@@ -121,7 +120,6 @@ export function MinecraftServerForm() {
         const formData = new FormData();
         formData.append("name", serverName);
         formData.append("gameSlug", "minecraft");
-        formData.append("port", port);
         formData.append("domainId", domainId);
         formData.append("subdomain", subdomain);
         formData.append("ramMb", selectedRam.toString());
@@ -212,18 +210,7 @@ export function MinecraftServerForm() {
                             )}
                         </div>
 
-                        <div className="grid gap-4 sm:grid-cols-1">
-                            <div>
-                                <Label htmlFor="port">Port (Default: 25565)</Label>
-                                <Input
-                                    id="port"
-                                    type="number"
-                                    value={port}
-                                    onChange={(e) => setPort(e.target.value)}
-                                    className="mt-1.5 border-white/5 bg-white/[0.02] focus:border-primary/30"
-                                />
-                            </div>
-                        </div>
+                        {/* Port removed - handled automatically */}
 
                         <div className="py-2">
                             <SystemCheck />

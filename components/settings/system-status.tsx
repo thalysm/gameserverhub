@@ -7,25 +7,32 @@ import {
     ShieldAlert,
     Loader2,
     RefreshCw,
-    Info
+    Info,
+    Globe
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { checkDockerStatus } from "@/actions/system-actions";
+import { getRouterUPnPStatus } from "@/actions/settings-actions";
 
 export function SystemStatus() {
-    const [status, setStatus] = useState<{ online: boolean; loading: boolean; error?: string }>({
+    const [status, setStatus] = useState<{ online: boolean; upnp: boolean; loading: boolean; error?: string }>({
         online: false,
+        upnp: false,
         loading: true
     });
 
     const checkStatus = async () => {
         setStatus(prev => ({ ...prev, loading: true }));
-        const result = await checkDockerStatus();
+        const [docker, upnp] = await Promise.all([
+            checkDockerStatus(),
+            getRouterUPnPStatus()
+        ]);
         setStatus({
-            online: result.online,
+            online: docker.online,
+            upnp: upnp,
             loading: false,
-            error: result.error
+            error: docker.error
         });
     };
 
@@ -56,7 +63,8 @@ export function SystemStatus() {
                 </Button>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
+                {/* Docker Engine Card */}
                 <div className="glass flex items-center justify-between rounded-xl p-4">
                     <div className="flex items-center gap-3">
                         <div className={cn(
@@ -83,6 +91,7 @@ export function SystemStatus() {
                     </div>
                 </div>
 
+                {/* Database Card */}
                 <div className="glass flex items-center justify-between rounded-xl p-4">
                     <div className="flex items-center gap-3">
                         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10">
@@ -93,6 +102,30 @@ export function SystemStatus() {
                             <p className="text-xs text-blue-500">Conectado (SQLite)</p>
                         </div>
                     </div>
+                </div>
+
+                {/* Router/UPnP Card */}
+                <div className="glass flex items-center justify-between rounded-xl p-4">
+                    <div className="flex items-center gap-3">
+                        <div className={cn(
+                            "flex h-10 w-10 items-center justify-center rounded-lg",
+                            status.loading ? "bg-muted" : (status.upnp ? "bg-primary/10" : "bg-red-500/10")
+                        )}>
+                            <Globe className={cn("h-5 w-5", status.upnp ? "text-primary" : "text-red-500")} />
+                        </div>
+                        <div>
+                            <p className="text-sm font-medium text-foreground">Modem (UPnP)</p>
+                            <p className={cn(
+                                "text-xs",
+                                status.loading ? "text-muted-foreground" : (status.upnp ? "text-primary font-bold" : "text-red-500")
+                            )}>
+                                {status.loading ? "Verificando..." : (status.upnp ? "Redirecionamento Ativo" : "Não detectado")}
+                            </p>
+                        </div>
+                    </div>
+                    {status.upnp && !status.loading && (
+                        <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]" title="Sistema pronto para abrir portas" />
+                    )}
                 </div>
             </div>
 

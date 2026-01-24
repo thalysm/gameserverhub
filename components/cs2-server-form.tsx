@@ -43,7 +43,6 @@ export function CS2ServerForm() {
 
     // Basic settings
     const [serverName, setServerName] = useState("");
-    const [port, setPort] = useState("27015");
     const [domainId, setDomainId] = useState("");
     const [subdomain, setSubdomain] = useState("");
 
@@ -100,7 +99,6 @@ export function CS2ServerForm() {
         const formData = new FormData();
         formData.append("name", serverName);
         formData.append("gameSlug", "cs2");
-        formData.append("port", port);
         formData.append("domainId", domainId);
         formData.append("subdomain", subdomain);
         formData.append("ramMb", selectedRam.toString());
@@ -163,18 +161,7 @@ export function CS2ServerForm() {
                                 className="mt-1.5 border-white/5 bg-white/[0.02] focus:border-primary/30"
                             />
                         </div>
-                        <div className="grid gap-4 sm:grid-cols-1">
-                            <div>
-                                <Label htmlFor="port">Port (UDP)</Label>
-                                <Input
-                                    id="port"
-                                    type="number"
-                                    value={port}
-                                    onChange={(e) => setPort(e.target.value)}
-                                    className="mt-1.5 border-white/5 bg-white/[0.02] focus:border-primary/30"
-                                />
-                            </div>
-                        </div>
+                        {/* Port removed - handled automatically */}
 
                         <div className="py-2">
                             <SystemCheck />

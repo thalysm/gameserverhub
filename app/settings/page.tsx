@@ -8,6 +8,7 @@ import { GeneralSettings } from "@/components/settings/general-settings";
 import { useState } from "react";
 import { Globe, Settings, Server, Bell, Activity, Zap } from "lucide-react";
 import { SystemStatus } from "@/components/settings/system-status";
+import { PortPoolSettings } from "@/components/settings/port-pool-settings";
 
 
 
@@ -16,7 +17,7 @@ const tabs = [
   { id: "hosts", label: "Hosts & Domains", icon: Globe },
 
   { id: "sistema", label: "System Status", icon: Activity },
-  { id: "servidores", label: "Servers", icon: Server },
+  { id: "rede", label: "Connectivity", icon: Zap },
   { id: "notificacoes", label: "Notifications", icon: Bell },
 ];
 
@@ -60,15 +61,8 @@ function SettingsContent() {
               <SystemStatus />
             </div>
           )}
-          {activeTab === "servidores" && (
-            <div className="glass rounded-xl p-6">
-              <h2 className="mb-4 text-lg font-semibold text-foreground">
-                Server Settings
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                Coming soon: Default settings for new servers.
-              </p>
-            </div>
+          {activeTab === "rede" && (
+            <PortPoolSettings />
           )}
           {activeTab === "notificacoes" && (
             <div className="glass rounded-xl p-6">

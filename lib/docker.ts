@@ -111,6 +111,7 @@ export async function createAndStartContainer(config: ContainerConfig): Promise<
         });
 
         // Start container
+        console.log(`Creating container with PortBindings:`, JSON.stringify(portBindings));
         await container.start();
         console.log(`Container ${config.name} created and started`);
 
