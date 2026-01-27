@@ -37,6 +37,7 @@ RUN npx prisma generate
 RUN npm run build
 
 # Production image, copy all the files and run next
+# Production image, copy all the files and run next
 FROM base AS runner
 WORKDIR /app
 RUN apk add --no-cache libc6-compat openssl
@@ -56,8 +57,17 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder --chown=nextjs:nodejs /app/lib ./lib
+COPY --from=builder --chown=nextjs:nodejs /app/scripts/docker-entrypoint.sh ./docker-entrypoint.sh
 
-USER nextjs
+# Install prisma (specific version to avoid breaking changes) and tsx globally
+RUN npm install -g prisma@5.10.2 tsx
+
+RUN chmod +x ./docker-entrypoint.sh
+
+# USER nextjs
 
 EXPOSE 3000
 
@@ -65,4 +75,4 @@ ENV PORT 3000
 # set hostname to localhost
 ENV HOSTNAME "0.0.0.0"
 
-CMD ["node", "server.js"]
+CMD ["./docker-entrypoint.sh"]

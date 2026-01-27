@@ -7,6 +7,8 @@ import { redirect } from "next/navigation";
 import { verifySession } from "@/lib/session";
 import { LayoutProvider } from "@/components/layout-context";
 
+export const dynamic = "force-dynamic";
+
 async function getGamesWithFavorites() {
   const userId = await verifySession();
   const games = await db.game.findMany({
